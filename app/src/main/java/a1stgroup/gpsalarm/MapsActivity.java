@@ -218,6 +218,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onMarkerDragEnd(Marker marker) {
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     LatLng coordinates = marker.getPosition();
+//  sdafas                  if(coordinates.)
                     myCircle = drawCircle(coordinates);
 
                    /* TODO:
@@ -594,6 +595,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+
+    public boolean detectFreq(Location location) {
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        boolean is=false;
+        if (myMarker != null && !stop) {
+            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1){
+                is=true;
+            }else{
+                is=false;
+            }
+        }
+        return is;
+    }
+
     private void showPopup() {
         LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -623,6 +639,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         else
             detectRadius(location);
+            if (detectFreq(location)){
+                myLocationRequest.setInterval(1000);
+            }
     }
 
     /**
