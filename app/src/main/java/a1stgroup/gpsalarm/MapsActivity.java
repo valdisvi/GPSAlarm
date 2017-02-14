@@ -117,7 +117,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             buildAlertMessageNoGps();
         }
         if (googleServicesAvailable()) {
-            setContentView(R.layout.activity_maps);
+            setContentView(R.layout.activity_map);
             initMap();
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -170,7 +170,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     private void initMap() {
-        MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.mapFragment);
+        MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
 
     }
@@ -474,6 +474,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+
     public void onInfoWindowLongClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
 
@@ -720,7 +721,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be terminated.\"")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -730,9 +731,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
+                        System.exit(1);
                     }
                 });
         final AlertDialog alert = builder.create();
         alert.show();
+    }
+
+
+      //Dobavlenij kod!!!   14.02.2017
+
+    private boolean flag = true;
+
+    public void stopTrackingBut(View view) {
+
+        Button button = (Button)findViewById(R.id.button4);
+
+        if(flag) {
+            button.setText("Start");
+            button.setBackgroundColor(Color.RED);
+            Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
+            flag = false;
+
+            if(myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
+            else return;
+        }
+
+        else {
+            button.setText("Pause");
+            button.setBackgroundColor(Color.GREEN);
+            Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
+            flag = true;
+
+            myGoogleApiClient.connect();
+        }
+
+
+
+
     }
 }

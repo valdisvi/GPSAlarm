@@ -16,13 +16,15 @@ public class TrackerService extends IntentService {
     MapsActivity mapsActivity;
     NotificationManager mapNotificationManager;
 
+
+
     public TrackerService() {
         super("TrackerService");
     }
 
     protected void onHandleIntent(Intent intent) {
-        mapsActivity.trackLocation();
-        sendNotification("Tracking");
+            mapsActivity.trackLocation();
+            sendNotification("Tracking");
     }
 
     private void sendNotification(String msg) {
