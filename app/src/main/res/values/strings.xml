@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">GPSAlarm</string>
+    <string name="title_activity_maps">Map</string>
+
+    <string name="menu_item_settings">Settings&#8230;</string>
+    <string name="hint_search">Search or press on map to add marker</string>
+    <string name="search_button_text">Search</string>
+    <string name="menu_item_my_alarms">My Alarms</string>
+    <string name="hint_enter_name">Enter name</string>
+    <string name="menu_item_help">Help</string>
+    <string name="helpText">1. Set your destination by either searching for the address in the searchbar at the top of the screen or by long pressing on your desired location. \n\n2. The application is now tracking your progress towards the marker, and will issue an alarm once you reach your destination.
+    \n\n3. To add your currently placed marker to the list of My Alarms, tap on the marker and long press on the popup. \n\n4. Access your marker using the menu at the top right side of the screen from the menu item My Alarms.
+    \n\n5. Menu entries:
+        \n -- My Alarms - list of saved markers. Tap to place a saved marker and start the tracking process. Remove items by long-pressing on an item.
+        \n -- Options include:
+            \n - Custom alarm sound;
+            \n - Notification Radius (distance);
+            \n - Selecting a map type;
+            \n - Selecting the update frequency.</string>
+
+</resources>

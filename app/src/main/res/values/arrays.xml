@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="mapTypeMenuEntries">
+        <item>None</item>
+        <item>Normal</item>
+        <item>Terrain</item>
+        <item>Satellite</item>
+        <item>Hybrid</item>
+    </string-array>
+
+    <string-array name="mapTypeValues">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </string-array>
+
+    <string-array name="alarmRadiusMenuEntries">
+        <item>100 metres</item>
+        <item>200 metres</item>
+        <item>500 metres</item>
+        <item>1 kilometre</item>
+        <item>2 kilometres</item>
+        <item>5 kilometres</item>
+    </string-array>
+
+    <string-array name="alarmRadiusValues">
+        <item>100</item>
+        <item>200</item>
+        <item>500</item>
+        <item>1000</item>
+        <item>2000</item>
+        <item>5000</item>
+    </string-array>
+
+    <string-array name="updateFrequencyMenuEntries">
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>3 minutes</item>
+    </string-array>
+
+    <string-array name="updateFrequencyValues">
+        <item>5000</item>
+        <item>10000</item>
+        <item>30000</item>
+        <item>60000</item>
+        <item>180000</item>
+    </string-array>
+
+</resources>

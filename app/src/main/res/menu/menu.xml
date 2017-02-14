@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="a1stgroup.gpsalarm.MapsActivity" >
+
+    <item
+        android:id="@+id/menuItemMyAlarms"
+        android:title="@string/menu_item_my_alarms" />
+
+    <item
+        android:id="@+id/menuItemSettings"
+        android:title="@string/menu_item_settings" />
+
+    <item
+        android:id="@+id/menuItemHelp"
+        android:title="@string/menu_item_help" />
+
+
+
+</menu>
