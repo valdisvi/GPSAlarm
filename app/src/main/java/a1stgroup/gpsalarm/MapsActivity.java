@@ -69,7 +69,7 @@ import java.util.List;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 import static java.security.AccessController.getContext;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -293,12 +293,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     tvLat.setText("Latitude: " + coordinates.latitude);
                     tvLng.setText("Longitude: " + coordinates.longitude);
                     tvSnippet.setText(marker.getSnippet());
+             
 
                     return v;
                 }
             });
 
-            myGoogleMap.setOnInfoWindowLongClickListener(this);
+          myGoogleMap.setOnInfoWindowClickListener(this);
 
 
         }
@@ -476,7 +477,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void onInfoWindowLongClick(Marker marker) {
+    public void onInfoWindowClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
 
         View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
@@ -800,4 +801,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
+
+    public void saveAlarmPoint(View view) {
+        onInfoWindowClick(myMarker);
+
+    }
+
+
+//    @Override
+//    public void onInfoWindowClick(Marker marker) {
+//
+//    }
 }
