@@ -721,7 +721,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be terminated.\"")
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -753,7 +753,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
 
-            if(myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
+            if(myGoogleApiClient.isConnected()) myLocationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
+
             else return;
         }
 
@@ -763,7 +764,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
 
-            myGoogleApiClient.connect();
+            myLocationRequest .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
 
 
