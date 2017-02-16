@@ -1,3 +1,4 @@
+
 package a1stgroup.gpsalarm;
 
 import android.Manifest;
@@ -69,7 +70,7 @@ import java.util.List;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 import static java.security.AccessController.getContext;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -224,13 +225,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                    /* TODO:
                     Useful but unstable feature of passing location information to InfoWindow on DragEnd
                    List<Address> list = null;
-
                     try {
                         list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
@@ -249,7 +248,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     /* TODO:
                     Useful but unstable feature of passing location information to InfoWindow on Long Click
-
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     List<Address> list = null;
                     try {
@@ -257,7 +255,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
@@ -294,11 +291,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     tvLng.setText("Longitude: " + coordinates.longitude);
                     tvSnippet.setText(marker.getSnippet());
 
+
                     return v;
                 }
             });
 
-            myGoogleMap.setOnInfoWindowLongClickListener(this);
+            myGoogleMap.setOnInfoWindowClickListener(this);
 
 
         }
@@ -476,7 +474,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void onInfoWindowLongClick(Marker marker) {
+    public void onInfoWindowClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
 
         View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
@@ -768,7 +766,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-      //Dobavlenij kod!!!   14.02.2017
+    //Dobavlenij kod!!!   14.02.2017
 
     private boolean flag = true;
 
@@ -800,4 +798,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
+
+
 }
+
+
