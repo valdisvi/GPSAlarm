@@ -70,7 +70,7 @@ import java.util.List;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 import static java.security.AccessController.getContext;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
 
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -300,7 +300,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
 
-            myGoogleMap.setOnInfoWindowLongClickListener(this);
+            myGoogleMap.setOnInfoWindowClickListener(this);
 
 
         }
@@ -483,7 +483,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void onInfoWindowLongClick(Marker marker) {
+    public void onInfoWindowClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
             View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
 
@@ -579,19 +579,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     double haversine(double lat1, double lon1, double lat2, double lon2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
-        lat1 = Math.toRadians(lat1);
-        lat2 = Math.toRadians(lat2);
-        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
-        double c = 2 * Math.asin(Math.sqrt(a));
-        return earthRadius * c;
+//        double dLat = Math.toRadians(lat2 - lat1);
+//        double dLon = Math.toRadians(lon2 - lon1);
+//        lat1 = Math.toRadians(lat1);
+//        lat2 = Math.toRadians(lat2);
+//        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+//        double c = 2 * Math.asin(Math.sqrt(a));
+        float[] results = new float[1];
+        Location.distanceBetween(lat1,lon1,lat2,lon2,results);
+        return results[0]/1000;
     }
 
     public void detectRadius(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
+
         if (myMarker != null && !stop) {
+
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
@@ -603,6 +607,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 destinationReached = true;
             }
         }
+    }
+
+
+    public boolean detectFreq(Location location) {
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        boolean is=false;
+        if (myMarker != null && !stop) {
+            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1){
+                is=true;
+            }else{
+                is=false;
+            }
+        }
+        return is;
     }
 
     private void showPopup() {
@@ -641,11 +660,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
         if(!isOnline()) buildAlertMessageNoInternet();
 
-            if (location == null) {
-                Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
-            } else
-                detectRadius(location);
-    }
+        if (location == null) {
+            Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
+        }
+        else
+            detectRadius(location);
+
+            if (detectFreq(location)) {
+                Log.i("FREQ", "true or false" + detectFreq(location));
+                myLocationRequest.setInterval(1000);
+                myLocationRequest.setFastestInterval(1000 / 2);
+                myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            }
+        }
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -820,4 +847,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         else return true;
     }
 
+
 }
+
+
