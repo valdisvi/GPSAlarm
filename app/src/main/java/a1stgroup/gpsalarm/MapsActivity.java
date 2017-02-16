@@ -1,3 +1,4 @@
+
 package a1stgroup.gpsalarm;
 
 import android.Manifest;
@@ -224,13 +225,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                    /* TODO:
                     Useful but unstable feature of passing location information to InfoWindow on DragEnd
                    List<Address> list = null;
-
                     try {
                         list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
@@ -249,7 +248,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     /* TODO:
                     Useful but unstable feature of passing location information to InfoWindow on Long Click
-
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     List<Address> list = null;
                     try {
@@ -257,7 +255,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
@@ -293,13 +290,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     tvLat.setText("Latitude: " + coordinates.latitude);
                     tvLng.setText("Longitude: " + coordinates.longitude);
                     tvSnippet.setText(marker.getSnippet());
-             
+
 
                     return v;
                 }
             });
 
-          myGoogleMap.setOnInfoWindowClickListener(this);
+            myGoogleMap.setOnInfoWindowClickListener(this);
 
 
         }
@@ -769,7 +766,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-      //Dobavlenij kod!!!   14.02.2017
+    //Dobavlenij kod!!!   14.02.2017
 
     private boolean flag = true;
 
@@ -802,14 +799,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void saveAlarmPoint(View view) {
-        onInfoWindowClick(myMarker);
 
-    }
-
-
-//    @Override
-//    public void onInfoWindowClick(Marker marker) {
-//
-//    }
 }
+
+
