@@ -17,5 +17,6 @@
             \n - Notification Radius (distance);
             \n - Selecting a map type;
             \n - Selecting the update frequency.</string>
+    <string name="pause">Pause</string>
 
 </resources>

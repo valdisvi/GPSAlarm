@@ -14,6 +14,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -90,6 +91,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Button closePopUp;
     LocationManager locationManager;
     LatLng latLng;
+    private LocationManager manager;
     //private GoogleApiClient client;
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     /**
@@ -113,9 +115,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
-            buildAlertMessageNoGps();
-        }
+        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        if(!isOnline()) buildAlertMessageNoInternet();
+
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
             initMap();
@@ -365,34 +368,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(View view) throws IOException {
-        EditText et = (EditText) findViewById(R.id.editText);
-        String location = et.getText().toString();
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
 
-        Geocoder gc = new Geocoder(this);                               // Takes any string and converts to latitude / longitude.
+            EditText et = (EditText) findViewById(R.id.editText);
+            String location = et.getText().toString();
 
-        List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
+            Geocoder gc = new Geocoder(this);                               // Takes any string and converts to latitude / longitude.
 
-        if (list.size() < 1) {                                          // Prevents search from crashing on non-existent results.
-            Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
-            et.getText().clear();
-            return;
-        }
+            List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
 
-        Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();
+            if (list.size() < 1) {                                          // Prevents search from crashing on non-existent results.
+                Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
+                et.getText().clear();
+                return;
+            }
 
-        Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
+            Address address = list.get(0);                                  // This object is filled with lots of information.
+            String locality = address.getLocality();
 
-        double lat = address.getLatitude();
-        double lng = address.getLongitude();
-        double roundedLat = Math.round(lat * 100000.0) / 100000.0;
-        double roundedLng = Math.round(lng * 100000.0) / 100000.0;
-        goToLocationZoom(lat, lng, 15);
+            Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
-        setMarker(locality, roundedLat, roundedLng);
+            double lat = address.getLatitude();
+            double lng = address.getLongitude();
+            double roundedLat = Math.round(lat * 100000.0) / 100000.0;
+            double roundedLng = Math.round(lng * 100000.0) / 100000.0;
+            goToLocationZoom(lat, lng, 15);
+
+            setMarker(locality, roundedLat, roundedLng);
     }
 
     void setMarker(String locality, double lat, double lng) {
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        if(!isOnline()) buildAlertMessageNoInternet();
+
         if (myMarker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
         }
@@ -477,39 +485,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onInfoWindowLongClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
+            View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
 
-        View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
+            AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+            alertBuilder.setView(myView);
+            final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
 
-        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
-        alertBuilder.setView(myView);
-        final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
+            alertBuilder.setCancelable(true)
+                    .setTitle("Save Alarm")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            String name = userInput.getText().toString();
 
-        alertBuilder.setCancelable(true)
-                .setTitle("Save Alarm")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        String name = userInput.getText().toString();
-
-                        if (TextUtils.isEmpty(name) || TextUtils.getTrimmedLength(name) < 1) {
-                            Toast.makeText(MapsActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
-                            return;
-                        }
-
-                        for (MarkerData markerData : markerDataList) {
-                            if (markerData.getName().equals(name)) {
-                                Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
+                            if (TextUtils.isEmpty(name) || TextUtils.getTrimmedLength(name) < 1) {
+                                Toast.makeText(MapsActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
                                 return;
                             }
-                        }
 
-                        addMarkerDataToList(name);
-                        myMarker.hideInfoWindow();
-                    }
-                });
-        Dialog myDialog = alertBuilder.create();
-        myDialog.show();
-    }
+                            for (MarkerData markerData : markerDataList) {
+                                if (markerData.getName().equals(name)) {
+                                    Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+                            }
+
+                            addMarkerDataToList(name);
+                            myMarker.hideInfoWindow();
+                        }
+                    });
+            Dialog myDialog = alertBuilder.create();
+            myDialog.show();
+        }
 
 
     /**
@@ -531,6 +538,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        if(!isOnline()) buildAlertMessageNoInternet();
+
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         /* TODO
@@ -603,6 +613,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         pw = new PopupWindow(layout, 300, 370, true);
         pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
+        pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
+            @Override                                                       
+            public void onDismiss() {
+                mySound.pause();
+                removeEverything();
+                destinationReached = false;
+                pw.dismiss();
+            }
+        });
+
         closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
         closePopUp.setOnClickListener(cancel_button_click_listener);
     }
@@ -618,12 +638,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {          // Called every time user changes location
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        if(!isOnline()) buildAlertMessageNoInternet();
 
-        if (location == null) {
-            Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
-        }
-        else
-            detectRadius(location);
+            if (location == null) {
+                Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
+            } else
+                detectRadius(location);
     }
 
     /**
@@ -739,6 +760,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+
+    private void buildAlertMessageNoInternet() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your Internet seems to be disabled, do you want to enable it?\n")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_DATA_ROAMING_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+
       //Dobavlenij kod!!!   14.02.2017
 
     private boolean flag = true;
@@ -753,8 +795,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
 
-            if(myGoogleApiClient.isConnected()) myLocationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
-
+            if(myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
             else return;
         }
 
@@ -764,11 +805,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
 
-            myLocationRequest .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            if(!myGoogleApiClient.isConnected()) myGoogleApiClient.connect();
+            else return;
         }
 
-
-
-
     }
+
+        // Dobavlenij kod!!! 15.02.2017
+
+    protected boolean isOnline() {
+        String cs = Context.CONNECTIVITY_SERVICE;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(cs);
+        if (cm.getActiveNetworkInfo() == null) return false;
+        else return true;
+    }
+
 }
