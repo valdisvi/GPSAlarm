@@ -78,8 +78,13 @@ import java.util.List;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 import static java.security.AccessController.getContext;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
+<<<<<<< HEAD
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnInfoWindowLongClickListener {
     Location loc;
+=======
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
+
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
     Marker myMarker;    // Separate Marker object to allow operations with it.
@@ -99,8 +104,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Button closePopUp;
     LocationManager locationManager;
     LatLng latLng;
-    private LocationManager manager;
+<<<<<<< HEAD
     WifiManager wifiManager;
+=======
+    private LocationManager manager;
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
     //private GoogleApiClient client;
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     /**
@@ -123,11 +131,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+<<<<<<< HEAD
+        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            buildAlertMessageNoGps();
+        }
+=======
 
         manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
+        if(!isOnline()) buildAlertMessageNoInternet();
 
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
             initMap();
@@ -237,7 +251,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onMarkerDragEnd(Marker marker) {
                     Geocoder gc = new Geocoder(MapsActivity.this);
                     LatLng coordinates = marker.getPosition();
-//  sdafas                  if(coordinates.)
                     myCircle = drawCircle(coordinates);
 
                    /* TODO:
@@ -386,32 +399,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(View view) throws IOException {
-	if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
-	EditText et = (EditText) findViewById(R.id.editText);
-        String location = et.getText().toString();
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
 
-        Geocoder gc = new Geocoder(this);                               // Takes any string and converts to latitude / longitude.
+            EditText et = (EditText) findViewById(R.id.editText);
+            String location = et.getText().toString();
 
-        List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
+            Geocoder gc = new Geocoder(this);                               // Takes any string and converts to latitude / longitude.
 
-        if (list.size() < 1) {                                          // Prevents search from crashing on non-existent results.
-            Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
-            et.getText().clear();
-            return;
-        }
+            List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
 
-        Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();
+            if (list.size() < 1) {                                          // Prevents search from crashing on non-existent results.
+                Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
+                et.getText().clear();
+                return;
+            }
 
-        Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
+            Address address = list.get(0);                                  // This object is filled with lots of information.
+            String locality = address.getLocality();
 
-        double lat = address.getLatitude();
-        double lng = address.getLongitude();
-        double roundedLat = Math.round(lat * 100000.0) / 100000.0;
-        double roundedLng = Math.round(lng * 100000.0) / 100000.0;
-        goToLocationZoom(lat, lng, 15);
+            Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
 
+<<<<<<< HEAD
 
 
 
@@ -421,8 +429,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(String locality, double lat, double lng) {
+=======
+            double lat = address.getLatitude();
+            double lng = address.getLongitude();
+            double roundedLat = Math.round(lat * 100000.0) / 100000.0;
+            double roundedLng = Math.round(lng * 100000.0) / 100000.0;
+            goToLocationZoom(lat, lng, 15);
+
+            setMarker(locality, roundedLat, roundedLng);
+    }
+
+    void setMarker(String locality, double lat, double lng) {
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
+        if(!isOnline()) buildAlertMessageNoInternet();
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
 
         if (myMarker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
@@ -435,7 +455,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(new LatLng(lat, lng));
 
         myMarker = myGoogleMap.addMarker(options);
-
         myCircle = drawCircle(new LatLng(lat, lng));
         double meters = haversine(loc.getLatitude(), loc.getLongitude(), myMarker.getPosition().latitude, myMarker.getPosition().longitude)*1000 - 1000;
         Toast.makeText(getApplicationContext(),"After "+ String.format("%.0f", meters)+" m you have to wake up!",
@@ -564,6 +583,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+<<<<<<< HEAD
         Thread thread1=new Thread(new Runnable() {
             @Override
             public void run() {
@@ -580,11 +600,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         thread1.start();
+=======
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        if(!isOnline()) buildAlertMessageNoInternet();
+
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        /* TODO
-        Change priority to balanced
-         */
         myLocationRequest.setInterval(locationUpdateFrequency);
         myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
 
@@ -637,7 +659,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (myMarker != null && !stop) {
 
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
-
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
                 wifiManager.setWifiEnabled(false);
@@ -674,9 +695,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         pw = new PopupWindow(layout, 300, 370, true);
         pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
-        pw.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
-        pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
-
         pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
             @Override                                                       
             public void onDismiss() {
@@ -701,13 +719,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     };
 
     @Override
+<<<<<<< HEAD
     public void onLocationChanged(Location location) {
         // Called every time user changes location
         loc=location;
+=======
+    public void onLocationChanged(Location location) {          // Called every time user changes location
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        if(!isOnline()) buildAlertMessageNoInternet();
+
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
-        else {
+        else
             detectRadius(location);
 
             if (detectFreq(location)) {
@@ -736,7 +761,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }
-    }
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -852,7 +876,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-  
+    private void buildAlertMessageNoInternet() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your Internet seems to be disabled, do you want to enable it?\n")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_DATA_ROAMING_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
 
 
       //Dobavlenij kod!!!   14.02.2017
@@ -885,6 +926,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+<<<<<<< HEAD
     public void enableWiFi() throws InterruptedException {
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
@@ -919,5 +961,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+}
+=======
+        // Dobavlenij kod!!! 15.02.2017
+
+    protected boolean isOnline() {
+        String cs = Context.CONNECTIVITY_SERVICE;
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(cs);
+        if (cm.getActiveNetworkInfo() == null) return false;
+        else return true;
+    }
+
 
 }
+
+
+>>>>>>> 7b51780eb59f08abba3f4a0d6da51defa0b46e7c
