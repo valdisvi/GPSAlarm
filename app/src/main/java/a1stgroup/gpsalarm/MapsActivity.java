@@ -632,6 +632,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         pw = new PopupWindow(layout, 300, 370, true);
         pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
+        pw.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
+        pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
+
         pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
             @Override                                                       
             public void onDismiss() {
@@ -849,5 +852,3 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 }
-
-
