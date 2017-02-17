@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Criteria;
@@ -20,9 +21,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -67,6 +70,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.graphics.Color.rgb;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 import static java.security.AccessController.getContext;
 
@@ -86,7 +90,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
-    private boolean destinationReached  = false;
+    private boolean destinationReached = false;
     private PopupWindow pw;
     Button closePopUp;
     LocationManager locationManager;
@@ -104,6 +108,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client2;
 
     //protected void Pause(View view) {
     //  mySound.stop();
@@ -114,7 +123,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+        final LocationManager manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             buildAlertMessageNoGps();
         }
         if (googleServicesAvailable()) {
@@ -167,6 +177,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client2 = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
 
@@ -321,20 +334,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+
     private void zoom(float zoom, float bearing, float tilt) {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-            if (location != null)
-            {
-                myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));                CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                    .zoom(zoom)                   // Sets the zoom
-                    .bearing(bearing)                // Sets the orientation of the camera to east
-                    .tilt(tilt)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
+        Criteria criteria = new Criteria();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+            if (location != null) {
+                myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                        .zoom(zoom)                   // Sets the zoom
+                        .bearing(bearing)                // Sets the orientation of the camera to east
+                        .tilt(tilt)                   // Sets the tilt of the camera to 30 degrees
+                        .build();                   // Creates a CameraPosition from the builder
                 myGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            }        }
+            }
+        }
     }
+
     private void centerMap() {
 
         Location location = myGoogleMap.getMyLocation();
@@ -342,8 +360,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (myMarker != null) {
             LatLng myLocation = new LatLng(myMarker.getPosition().latitude, myMarker.getPosition().longitude);
             myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
-        }
-        else if (location != null) {
+        } else if (location != null) {
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
             myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         } else {
@@ -539,7 +556,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
 
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
         }
 
@@ -550,7 +567,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
@@ -575,8 +592,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
 //        double c = 2 * Math.asin(Math.sqrt(a));
         float[] results = new float[1];
-        Location.distanceBetween(lat1,lon1,lat2,lon2,results);
-        return results[0]/1000;
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0] / 1000;
     }
 
     public void detectRadius(Location location) {
@@ -599,16 +616,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-
-    public boolean detectFreq(Location location) {
+        public boolean detectFreq(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        boolean is=false;
+        boolean is = false;
         if (myMarker != null && !stop) {
-            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1){
-                is=true;
-            }else{
-                is=false;
+            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1) {
+                is = true;
+            } else {
+                is = false;
             }
         }
         return is;
@@ -624,7 +640,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
         closePopUp.setOnClickListener(cancel_button_click_listener);
+
     }
+
+    public void turnOffAlarm(){
+        mySound.pause();
+        removeEverything();
+        destinationReached = false;
+        pw.dismiss();
+    }
+
 
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
@@ -640,8 +665,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
-        }
-        else {
+        } else {
             detectRadius(location);
 
             if (detectFreq(location)) {
@@ -702,18 +726,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name) {
+    public void addMarkerDataToList(String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
         toBeAdded.setLongitude(myMarker.getPosition().longitude);
         if (markerDataList.add(toBeAdded)) {
-            if(saveMarkerDataList())
+            if (saveMarkerDataList())
                 Toast.makeText(this, "Alarm saved", Toast.LENGTH_SHORT).show();
             else
                 Toast.makeText(this, "File write failed", Toast.LENGTH_SHORT).show();
-        }
-        else
+        } else
             Toast.makeText(this, "Failed to add alarm to list", Toast.LENGTH_SHORT).show();
     }
 
@@ -727,32 +750,37 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return false;
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case MY_PERMISSION_FINE_LOCATIONS :
+            case MY_PERMISSION_FINE_LOCATIONS:
                 if (grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {                        myGoogleMap.setMyLocationEnabled(true);                        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
-                            .addApi(LocationServices.API)
-                            .addConnectionCallbacks(this)
-                            .addOnConnectionFailedListener(this)
-                            .build();                        myGoogleApiClient.connect();
-                    }                }
-                else{
-                    Toast.makeText(getApplicationContext(),"this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        myGoogleMap.setMyLocationEnabled(true);
+                        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
+                                .addApi(LocationServices.API)
+                                .addConnectionCallbacks(this)
+                                .addOnConnectionFailedListener(this)
+                                .build();
+                        myGoogleApiClient.connect();
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
                     finish();
                 }
                 break;
         }
     }
+
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -772,31 +800,65 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void stopTrackingBut(View view) {
 
-        Button button = (Button)findViewById(R.id.button4);
+        Button button = (Button) findViewById(R.id.button4);
 
-        if(flag) {
+        if (flag) {
             button.setText("Start");
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
 
-            if(myGoogleApiClient.isConnected()) myLocationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
+            if (myGoogleApiClient.isConnected())
+                myLocationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
 
             else return;
-        }
-
-        else {
+        } else {
             button.setText("Pause");
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
 
-            myLocationRequest .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
 
 
+    }
 
 
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    public Action getIndexApiAction1() {
+        Thing object = new Thing.Builder()
+                .setName("Maps Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client2.connect();
+        AppIndex.AppIndexApi.start(client2, getIndexApiAction1());
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        AppIndex.AppIndexApi.end(client2, getIndexApiAction1());
+        client2.disconnect();
     }
 
 
