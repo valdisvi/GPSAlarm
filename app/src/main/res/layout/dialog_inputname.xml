@@ -18,6 +18,15 @@
         android:text=""
         android:hint="@string/hint_enter_name"/>
 
+    <!--<SingleDateAndTimePicker-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="230dp"-->
+        <!--android:picker_curved="true"-->
+        <!--android:picker_cyclic="true"-->
+        <!--android:picker_canBeOnPast="false"-->
+        <!--android:picker_visibleItemCount="7"-->
+        <!--/>-->
+
     <!--
     <Button
         android:layout_width="match_parent"

@@ -80,7 +80,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import static android.graphics.Color.rgb;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
@@ -533,7 +535,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 }
                             }
 
-                            addMarkerDataToList(name);
+                            addMarkerDataToList(name, timeToEnable);
                             myMarker.hideInfoWindow();
                         }
                     });
@@ -705,6 +707,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
+
         else {
             detectRadius(location);
 
@@ -785,9 +788,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name) {
+    public void addMarkerDataToList (String name, Calendar timeToEnable) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
+        toBeAdded.setTime(timeToEnable);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
         toBeAdded.setLongitude(myMarker.getPosition().longitude);
         if (markerDataList.add(toBeAdded)) {
