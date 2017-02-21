@@ -22,6 +22,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -101,24 +102,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LatLng latLng;
     private LocationManager manager;
     WifiManager wifiManager;
+    private GoogleApiClient client;
     //private GoogleApiClient client;
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
 
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
-
-    //protected void Pause(View view) {
-    //  mySound.stop();
-    //   mySound.release();
-    ///}
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,10 +120,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             setContentView(R.layout.activity_map);
             initMap();
 
-            try {
-                enableWiFi();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if(!isOnline()) {           // Dobavlennij kod 17.02.2017
+                try {
+                    enableWiFi();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -437,9 +427,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myMarker = myGoogleMap.addMarker(options);
 
         myCircle = drawCircle(new LatLng(lat, lng));
-        double meters = haversine(loc.getLatitude(), loc.getLongitude(), myMarker.getPosition().latitude, myMarker.getPosition().longitude)*1000 - 1000;
-        Toast.makeText(getApplicationContext(),"After "+ String.format("%.0f", meters)+" m you have to wake up!",
-                Toast.LENGTH_LONG).show();
+     //   double meters = haversine(loc.getLatitude(), loc.getLongitude(), myMarker.getPosition().latitude, myMarker.getPosition().longitude)*1000 - 1000;
+     //   Toast.makeText(getApplicationContext(),"After "+ String.format("%.0f", meters)+" m you have to wake up!",
+           //     Toast.LENGTH_LONG).show();
         stop = false;
 
     }
@@ -573,13 +563,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     e.printStackTrace();
                 }
                 try {
+                    Looper.prepare();
                     checkAndConnect();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
-        thread1.start();
+      //  thread1.start();
+
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         /* TODO
@@ -640,7 +632,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
-                wifiManager.setWifiEnabled(false);
+                //swifiManager.setWifiEnabled(false);
                 mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
@@ -743,7 +735,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
 
-    public Action getIndexApiAction0() {
+    /*public Action getIndexApiAction0() {
         Thing object = new Thing.Builder()
                 .setName("Maps Page") // TODO: Define a title for the content shown.
                 // TODO: Make sure this auto-generated URL is correct.
@@ -753,7 +745,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setObject(object)
                 .setActionStatus(Action.STATUS_TYPE_COMPLETED)
                 .build();
-    }
+    }*/
 
     public void changeMapType(String type) {
         switch (type) {
@@ -850,11 +842,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-
-
-  
-
-
       //Dobavlenij kod!!!   14.02.2017
 
     private boolean flag = true;
@@ -916,6 +903,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }
+
+    }
+
+            // Dobavlennij kod! 17.02.2017
+    protected boolean isOnline() {
+        String cs = Context.CONNECTIVITY_SERVICE;
+        ConnectivityManager cm = (ConnectivityManager)
+                getSystemService(cs);
+        if (cm.getActiveNetworkInfo() == null) return false;
+        else return true;
 
     }
 
