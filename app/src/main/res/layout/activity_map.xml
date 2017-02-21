@@ -16,27 +16,33 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
-    <EditText
+    <fragment
+        android:id="@+id/place_autocomplete_fragment"
         android:layout_width="match_parent"
-        android:inputType="text"
-        android:layout_height="wrap_content"
-        android:id="@+id/editText"
-        android:hint="@string/hint_search"
-        android:layout_gravity="center_horizontal"
-        android:lines="1"
-        android:imeOptions="actionDone"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:background="@drawable/blueline_textfield_activated_holo_light"
-        android:textCursorDrawable="@color/blueline_color"
-        android:textColorHighlight="@color/cast_intro_overlay_button_background_color"
-        android:textColorHint="@color/wallet_dim_foreground_holo_dark"
-        android:textColorLink="@android:color/holo_blue_light" />
+        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+        android:layout_height="wrap_content" />
+
+    <!--<EditText-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:inputType="text"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:id="@+id/editText"-->
+    <!--android:hint="@string/hint_search"-->
+    <!--android:layout_gravity="center_horizontal"-->
+    <!--android:lines="1"-->
+    <!--android:imeOptions="actionDone"-->
+    <!--android:layout_alignParentTop="true"-->
+    <!--android:layout_alignParentLeft="true"-->
+    <!--android:layout_alignParentStart="true"-->
+    <!--android:background="@drawable/blueline_textfield_activated_holo_light"-->
+    <!--android:textCursorDrawable="@color/blueline_color"-->
+    <!--android:textColorHighlight="@color/cast_intro_overlay_button_background_color"-->
+    <!--android:textColorHint="@color/wallet_dim_foreground_holo_dark"-->
+    <!--android:textColorLink="@android:color/holo_blue_light" />-->
 
     <LinearLayout
         android:id="@+id/line"
-        android:layout_below="@+id/editText"
+        android:layout_below="@+id/place_autocomplete_fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -49,17 +55,17 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.5" />
 
-    <Button
-        android:text="Pause"
-        android:layout_height="wrap_content"
-        android:id="@+id/button4"
-        android:layout_below="@+id/editText"
-        android:layout_toRightOf="@+id/button"
-        android:layout_toEndOf="@+id/button"
-        android:background="@android:color/holo_green_light" android:state_pressed="true"
-        android:onClick="stopTrackingBut"
-        android:layout_weight="0.5"
-        android:layout_width="0dp" />
+        <Button
+            android:text="Pause"
+            android:layout_height="wrap_content"
+            android:id="@+id/button4"
+            android:layout_below="@+id/editText"
+            android:layout_toRightOf="@+id/button"
+            android:layout_toEndOf="@+id/button"
+            android:background="@android:color/holo_green_light" android:state_pressed="true"
+            android:onClick="stopTrackingBut"
+            android:layout_weight="0.5"
+            android:layout_width="0dp" />
 
 
 

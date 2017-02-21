@@ -52,9 +52,13 @@ import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -101,6 +105,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LatLng latLng;
     private LocationManager manager;
     WifiManager wifiManager;
+    LatLng addressGeo;
+    String addressName;
     //private GoogleApiClient client;
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     /**
@@ -183,6 +189,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                addressGeo = place.getLatLng();
+                addressName =place.getName().toString();
+                Log.i("V","longitude: "+ place.getLatLng().longitude);
+            }
+
+            @Override
+            public void onError(Status status) {
+            }
+
+        });
+
+
+
+
+
+
 
     }
 
@@ -255,7 +282,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
 
-                    setMarker("Location", roundedLatitude, roundedLongitude);
+                    setMarker( roundedLatitude, roundedLongitude);
 
                 }
             });
@@ -283,7 +310,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
-                    setMarker("Location", roundedLatitude, roundedLongitude);
+                    setMarker(roundedLatitude, roundedLongitude);
                     /* TODO
                     * Put some location information into the marker
                     * */
@@ -334,7 +361,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             myGoogleApiClient.connect();
             zoom(15, 90, 40);
             if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
-                setMarker(ListActivity.selectedMarkerData.getName(), ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
+                setMarker( ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
             }
             centerMap();
         } else {
@@ -386,43 +413,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(View view) throws IOException {
-	if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
-	EditText et = (EditText) findViewById(R.id.editText);
-        String location = et.getText().toString();
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
 
-        Geocoder gc = new Geocoder(this);                               // Takes any string and converts to latitude / longitude.
-
-        List<Address> list = gc.getFromLocationName(location, 1);       // We choose just 1 result
-
-        if (list.size() < 1) {                                          // Prevents search from crashing on non-existent results.
+        if (addressName != null) {
+            double lat = addressGeo.latitude;
+            double lng = addressGeo.longitude;
+            double roundedLat = Math.round(lat * 100000.0) / 100000.0;
+            double roundedLng = Math.round(lng * 100000.0) / 100000.0;
+            goToLocationZoom(lat, lng, 15);
+            setMarker(roundedLat, roundedLng);
+        } else {
             Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
-            et.getText().clear();
-            return;
         }
-
-        Address address = list.get(0);                                  // This object is filled with lots of information.
-        String locality = address.getLocality();
-
-        Toast.makeText(this, locality, Toast.LENGTH_LONG).show();
-
-        double lat = address.getLatitude();
-        double lng = address.getLongitude();
-        double roundedLat = Math.round(lat * 100000.0) / 100000.0;
-        double roundedLng = Math.round(lng * 100000.0) / 100000.0;
-        goToLocationZoom(lat, lng, 15);
-
-
-
-
-
-
-        setMarker(locality, roundedLat, roundedLng);
     }
-
-    void setMarker(String locality, double lat, double lng) {
+    void setMarker( double lat, double lng) {
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
+
 
         if (myMarker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
@@ -430,19 +436,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
                 .draggable(true)
-                .title(locality)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
 
         myMarker = myGoogleMap.addMarker(options);
 
         myCircle = drawCircle(new LatLng(lat, lng));
-        double meters = haversine(loc.getLatitude(), loc.getLongitude(), myMarker.getPosition().latitude, myMarker.getPosition().longitude)*1000 - 1000;
-        Toast.makeText(getApplicationContext(),"After "+ String.format("%.0f", meters)+" m you have to wake up!",
-                Toast.LENGTH_LONG).show();
+
         stop = false;
 
     }
+
 
     private Circle drawCircle(LatLng latLng) {
 
@@ -457,6 +461,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void removeEverything() {
+        wifiManager.setWifiEnabled(false);
         if (myMarker != null) {
             myMarker.remove();
             myMarker = null;        // To save some space
@@ -640,7 +645,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
-                wifiManager.setWifiEnabled(false);
                 mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
@@ -865,7 +869,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
-
+//            wifiManager.setWifiEnabled(false);
             if(myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
             else return;
         }
@@ -875,7 +879,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
-
+//            wifiManager.setWifiEnabled(true);
             if(!myGoogleApiClient.isConnected()) myGoogleApiClient.connect();
             else return;
         }
