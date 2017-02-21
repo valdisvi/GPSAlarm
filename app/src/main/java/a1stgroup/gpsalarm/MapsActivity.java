@@ -577,7 +577,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-        thread1.start();
+        //thread1.start();
 
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
