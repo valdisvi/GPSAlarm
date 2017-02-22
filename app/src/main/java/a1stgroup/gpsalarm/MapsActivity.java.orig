@@ -121,7 +121,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
 
+<<<<<<< HEAD
+            if (googleServicesAvailable()) {
+                setContentView(R.layout.activity_map);
+                initMap();
+            }
+=======
         manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
 
@@ -129,6 +137,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
             initMap();
+>>>>>>> ae202f0c8d8a5e96fb7fa951e518abb5998db9cf
 
             if(!isOnline()) {           // Dobavlennij kod 17.02.2017
                 try {
@@ -180,7 +189,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
-        }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -675,7 +683,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
 
         pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
-            @Override                                                       
+            @Override
             public void onDismiss() {
                 mySound.pause();
                 removeEverything();
@@ -847,11 +855,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
+<<<<<<< HEAD
+=======
 
 
-  
 
 
+
+>>>>>>> ae202f0c8d8a5e96fb7fa951e518abb5998db9cf
       //Dobavlenij kod!!!   14.02.2017
 
     private boolean flag = true;
@@ -926,6 +937,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         else return true;
 
     }
-
 
 }
