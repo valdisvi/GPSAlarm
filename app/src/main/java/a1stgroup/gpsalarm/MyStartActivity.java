@@ -69,7 +69,7 @@ public class MyStartActivity extends AppCompatActivity {
 
             Collections.sort(markerDataList, new Comparator<MarkerData>() {
 
-    /* This comparator will sort AppDetail objects alphabetically. */
+            /* This comparator will sort MarkerData objects alphabetically. */
 
                 @Override
                 public int compare(MarkerData a1, MarkerData a2) {
