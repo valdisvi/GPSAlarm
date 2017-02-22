@@ -3,14 +3,23 @@ package a1stgroup.gpsalarm;
 
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class MarkerData implements Serializable {
 
     private String name = "Location";
     private double latitude = 100.1;
     private double longitude;
-    private Calendar timeToEnable;
+//    private Calendar timeToEnable = Calendar.getInstance();
+//    Date date;
+    private long enablingTime;
+
+    public MarkerData() {
+    }
 
     public String getName() {
         return name;
@@ -19,6 +28,7 @@ public class MarkerData implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
+
 
     public double getLatitude() {
         return latitude;
@@ -36,12 +46,12 @@ public class MarkerData implements Serializable {
         this.longitude = longitude;
     }
 
-    public Calendar getTime() {
-        return timeToEnable;
+    public long getEnablingTime() {
+        return enablingTime;
     }
 
-    public void setTime(Calendar timeToEnable) {
-        this.timeToEnable = timeToEnable;
+    public void setTime(long enablingTime) {
+        this.enablingTime = enablingTime;
     }
 
     public boolean isReal() {

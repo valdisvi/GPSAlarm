@@ -2,6 +2,7 @@ package a1stgroup.gpsalarm;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -47,6 +48,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -79,8 +81,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -114,6 +118,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LatLng addressGeo;
     String addressName;
     private GoogleApiClient client;
+    long enablingTime;
+    //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
 
     @Override
@@ -355,6 +361,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             zoom(15, 90, 40);
             if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
                 setMarker( ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
+                enablingTime = ListActivity.selectedMarkerData.getEnablingTime();
             }
             centerMap();
         } else {
@@ -482,6 +489,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (myMarker != null) {
                     ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
                     ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setTime(enablingTime);
                 }
                 startActivity(i);
                 return true;
@@ -490,6 +498,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (myMarker != null) {
                     ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
                     ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setTime(enablingTime);
                 }
                 startActivity(j);
                 return true;
@@ -498,6 +507,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (myMarker != null) {
                     ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
                     ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setTime(enablingTime);
                 }
                 startActivity(k);
                 return true;
@@ -510,35 +520,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onInfoWindowClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
-            View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
+        View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
 
-            AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
-            alertBuilder.setView(myView);
-            final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
+        final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+        alertBuilder.setView(myView);
+        final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
 
-            alertBuilder.setCancelable(true)
-                    .setTitle("Save Alarm")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            String name = userInput.getText().toString();
 
-                            if (TextUtils.isEmpty(name) || TextUtils.getTrimmedLength(name) < 1) {
-                                Toast.makeText(MapsActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
+        alertBuilder.setCancelable(true)
+                .setTitle("Save Alarm")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String name = userInput.getText().toString();
+
+                        if (TextUtils.isEmpty(name) || TextUtils.getTrimmedLength(name) < 1) {
+                            Toast.makeText(MapsActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        for (MarkerData markerData : markerDataList) {
+                            if (markerData.getName().equals(name)) {
+                                Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
                                 return;
                             }
-
-                            for (MarkerData markerData : markerDataList) {
-                                if (markerData.getName().equals(name)) {
-                                    Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
-                                    return;
-                                }
-                            }
-
-                            addMarkerDataToList(name, timeToEnable);
-                            myMarker.hideInfoWindow();
                         }
-                    });
+
+                        addMarkerDataToList(name, 0);
+                        myMarker.hideInfoWindow();
+                    }
+                });
+
+
             Dialog myDialog = alertBuilder.create();
             myDialog.show();
         }
@@ -707,8 +720,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
-
-        else {
             detectRadius(location);
 
             if (detectFreq(location)) {
@@ -735,7 +746,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
-            }
         }
     }
 
@@ -788,10 +798,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name, Calendar timeToEnable) {
+    public void addMarkerDataToList (String name, long enablingTime){
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
-        toBeAdded.setTime(timeToEnable);
+        toBeAdded.setTime(enablingTime);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
         toBeAdded.setLongitude(myMarker.getPosition().longitude);
         if (markerDataList.add(toBeAdded)) {
@@ -930,6 +940,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         else return true;
 
     }
+
+
 
 
 }
