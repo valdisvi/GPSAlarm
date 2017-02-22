@@ -22,9 +22,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 
 import static a1stgroup.gpsalarm.ListActivity.selectedMarkerData;
 import static a1stgroup.gpsalarm.MapsActivity.markerDataList;
+import static android.R.id.list;
 
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
@@ -63,10 +67,21 @@ public class MyStartActivity extends AppCompatActivity {
 
             ListView listView = (ListView) findViewById(R.id.listView);
 
+            Collections.sort(markerDataList, new Comparator<MarkerData>() {
+
+    /* This comparator will sort AppDetail objects alphabetically. */
+
+                @Override
+                public int compare(MarkerData a1, MarkerData a2) {
+
+                    // String implements Comparable
+                    return (a1.getName().toString()).compareTo(a2.getName().toString());
+                }
+            });
+
             listView.setAdapter(myAdapter);
 
             final ListView myListView2 = (ListView) findViewById(R.id.listView);
-
             myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02,2017
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
