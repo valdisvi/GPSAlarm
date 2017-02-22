@@ -43,8 +43,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -117,14 +119,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
 
-        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
-
-        if (googleServicesAvailable()) {
-            setContentView(R.layout.activity_map);
-            initMap();
+            if (googleServicesAvailable()) {
+                setContentView(R.layout.activity_map);
+                initMap();
+            }
 
             if(!isOnline()) {           // Dobavlennij kod 17.02.2017
                 try {
@@ -175,7 +176,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Log.e("File Read error: ", e.getMessage());
             }
 
-        }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -195,13 +195,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         });
 
-
-
-
-
-
-
-    }
+        }
 
 
     private void initMap() {
@@ -639,7 +633,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(1000);
-                mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
@@ -848,11 +841,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-
-
-  
-
-
       //Dobavlenij kod!!!   14.02.2017
 
     private boolean flag = true;
@@ -926,6 +914,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         else return true;
 
     }
-
 
 }
