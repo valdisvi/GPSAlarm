@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
@@ -84,6 +85,7 @@ import java.util.List;
 
 import static android.graphics.Color.rgb;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
+import static android.provider.Settings.System.SETTINGS_CLASSNAME;
 import static java.security.AccessController.getContext;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
@@ -120,7 +122,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-        
+
 
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
@@ -133,6 +135,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     e.printStackTrace();
                 }
             }
+
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
@@ -233,6 +236,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
 
         myGoogleMap = googleMap;
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
 
         if (myGoogleMap != null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -676,7 +680,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
 
         pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
-            @Override                                                       
+            @Override
             public void onDismiss() {
                 mySound.pause();
                 removeEverything();
@@ -850,7 +854,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-  
+
 
 
       //Dobavlenij kod!!!   14.02.2017
@@ -916,6 +920,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
     }
+
 
             // Dobavlennij kod! 17.02.2017
     protected boolean isOnline() {
