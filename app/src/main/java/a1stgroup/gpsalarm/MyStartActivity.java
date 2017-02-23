@@ -1,11 +1,9 @@
 package a1stgroup.gpsalarm;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -23,7 +21,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static a1stgroup.gpsalarm.ListActivity.selectedMarkerData;
 import static a1stgroup.gpsalarm.MapsActivity.markerDataList;
 
 /**
@@ -37,6 +34,8 @@ public class MyStartActivity extends AppCompatActivity {
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
+    static MarkerData selectedMarkerData = new MarkerData();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

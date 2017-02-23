@@ -6,25 +6,25 @@
     tools:context="a1stgroup.gpsalarm.MyStartActivity"
     android:layout_height="match_parent">
 
-     <Button
-        android:text="To Map"
-        android:layout_height="55dp"
-        android:id="@+id/ToMap"
-        android:layout_marginTop="13dp"
-        android:layout_width="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:onClick="toMap"
-        tools:ignore="HardcodedText"
-        tools:layout_below="@+id/listView" />
-
     <ListView
         android:id="@+id/listView"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="11dp"
-        android:layout_width="350dp"
-        android:layout_height="420dp" />
+        android:layout_width="wrap_content"
+        android:layout_height="440dp" />
+
+    <Button
+       android:text="To Map"
+       android:layout_height="55dp"
+       android:id="@+id/ToMap"
+        android:layout_width="match_parent"
+        android:background="@android:color/holo_green_light" android:state_pressed="true"
+        android:onClick="toMap"
+       tools:ignore="HardcodedText"
+       tools:layout_below="@+id/listView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
