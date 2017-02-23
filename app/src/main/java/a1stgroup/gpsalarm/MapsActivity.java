@@ -181,6 +181,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         }
+
+      //  else System.exit(0);
+
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -540,7 +544,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-        thread1.start();
+      //  thread1.start();
 
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -582,8 +586,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     double haversine(double lat1, double lon1, double lat2, double lon2) {
         float[] results = new float[1];
-        Location.distanceBetween(lat1,lon1,lat2,lon2,results);
-        return results[0]/1000;
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0] / 1000;
     }
 
     public void detectRadius(Location location) {
@@ -609,13 +613,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean detectFreq(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        boolean is=false;
+        boolean is = false;
         if (myMarker != null && !stop) {
-            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1){
-                is=true;
-            }else{
-                is=false;
-            }
+
+            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1)
+                is = true;
+            else is = false;
+
         }
         return is;
     }
@@ -657,7 +661,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         // Called every time user changes location
-        loc=location;
+        loc = location;
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
@@ -677,7 +681,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
             }
-            else{
+            else {
                 if (myLocationRequest.getInterval() != locationUpdateFrequency) {
                     myLocationRequest = LocationRequest.create();
                     myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -763,7 +767,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }                }
                 else{
                     Toast.makeText(getApplicationContext(),"this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
-                    finish();
+                    ActivityCompat.finishAffinity(MapsActivity.this);
+                    System.exit(0);
                 }
                 break;
         }
@@ -780,6 +785,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
+                        ActivityCompat.finishAffinity(MapsActivity.this);
                         System.exit(0);
                     }
                 });
