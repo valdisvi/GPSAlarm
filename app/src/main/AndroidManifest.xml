@@ -46,7 +46,8 @@
         </activity>
 
         <activity
-            android:name=".MapsActivity">
+            android:name=".MapsActivity"
+            android:parentActivityName=".MyStartActivity">
         </activity>
 
         <activity
