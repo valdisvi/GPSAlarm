@@ -47,13 +47,14 @@ public class ListActivity extends AppCompatActivity {
                 selectedMarkerData = (MarkerData) myAdapter.getItem(i);
                 //timeToEnable = selectedMarkerData.getTime() - Calendar.getInstance();
                 //long startTime = selectedMarkerData.getTime().getTimeInMillis();
+
                 long destinationDate = selectedMarkerData.getEnablingTime();
                 long currentDate = Calendar.getInstance().getTimeInMillis();
                 long msDelay = destinationDate - currentDate;
                 long minutesToEnable = TimeUnit.MINUTES.convert(msDelay, TimeUnit.MILLISECONDS);
                 //TimeConverter timeConverter = new TimeConverter(msDelay);
                 Toast.makeText(ListActivity.this, "Alarm Set: " + selectedMarkerData.getName() + " will be enabled after " +
-                        minutesToEnable + " minutes", Toast.LENGTH_SHORT).show();
+                        minutesToEnable + " minutes", Toast.LENGTH_LONG).show();
               //  Toast.makeText(ListActivity.this, "Latitude: " + selectedMarkerData.getLatitude(), Toast.LENGTH_SHORT).show();
               //  Toast.makeText(ListActivity.this, "Longitude: " + selectedMarkerData.getLongitude(), Toast.LENGTH_SHORT).show();
 

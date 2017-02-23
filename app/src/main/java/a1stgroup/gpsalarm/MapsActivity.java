@@ -44,6 +44,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
@@ -119,6 +120,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String addressName;
     private GoogleApiClient client;
     long enablingTime;
+    Calendar calendar = Calendar.getInstance();
     //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
 
@@ -445,6 +447,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         myCircle = drawCircle(new LatLng(lat, lng));
 
+        if (calendar != null) calendar = Calendar.getInstance();
+        enablingTime = calendar.getTimeInMillis() + 30000;
         stop = false;
 
     }
@@ -525,8 +529,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setView(myView);
         final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(userInput.getWindowToken(), 0);
+        final TimePicker timePicker = (TimePicker) myView.findViewById(R.id.timePicker);
+        timePicker.setIs24HourView(true);
 
-
+        timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+            @Override
+            public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                timePicker.setCurrentHour(hourOfDay);
+                timePicker.setCurrentMinute(minute);
+            }
+        });
         alertBuilder.setCancelable(true)
                 .setTitle("Save Alarm")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -545,8 +559,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return;
                             }
                         }
+                        //Calendar calendar= Calendar.getInstance();
+                        if (calendar != null) {
+                            calendar = Calendar.getInstance();
+                        }
+                        Date currentDate = calendar.getTime();
+                        int hour = timePicker.getCurrentHour();
+                        int minutes = timePicker.getCurrentMinute();
+                        int year = calendar.YEAR;
+                        int month = currentDate.getMonth();
+                        int day = 23;
+                        Date enablingDate = new Date(117, month, day, hour, minutes);
+                        Calendar calendarForSettingEnablingDate = Calendar.getInstance();
+                        calendarForSettingEnablingDate.setTime(enablingDate);
+                        enablingTime = calendarForSettingEnablingDate.getTimeInMillis();
 
-                        addMarkerDataToList(name, 0);
+                        addMarkerDataToList(name, enablingTime);
                         myMarker.hideInfoWindow();
                     }
                 });
@@ -716,10 +744,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         // Called every time user changes location
+        stop = false;
         loc=location;
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
+        if (enablingTime > Calendar.getInstance().getTimeInMillis()) {
+            stop = true;
+        }
+        else {
             detectRadius(location);
 
             if (detectFreq(location)) {
@@ -735,7 +768,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
             }
-            else{
+            else {
                 if (myLocationRequest.getInterval() != locationUpdateFrequency) {
                     myLocationRequest = LocationRequest.create();
                     myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -746,6 +779,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
+            }
         }
     }
 
@@ -941,7 +975,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    protected void enableAlarmPoint() {
 
-
-
+    }
 }
