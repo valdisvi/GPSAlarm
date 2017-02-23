@@ -1,5 +1,6 @@
 package a1stgroup.gpsalarm;
 
+import android.app.NotificationManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -95,5 +96,12 @@ public class ListActivity extends AppCompatActivity {
         return false;
     }
 
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(01);
+    }
 
 }
