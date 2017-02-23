@@ -45,7 +45,6 @@ public class MyStartActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         try {
             markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile");
         } catch (IOException e) {

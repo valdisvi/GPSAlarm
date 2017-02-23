@@ -137,8 +137,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             setContentView(R.layout.activity_map);
             initMap();
 
-     
-
+//            if(!isOnline()) {           // Dobavlennij kod 17.02.2017
+//                try {
+//                    enableWiFi();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
@@ -182,11 +187,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         }
+<<<<<<< HEAD
+
+      //  else System.exit(0);
+
+
+=======
         try {
             checkAndConnect();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+>>>>>>> 85263aebdd8866c712183d0e7c06b53e5a2c7e07
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -196,8 +208,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onPlaceSelected(Place place) {
                 addressGeo = place.getLatLng();
-                addressName =place.getName().toString();
-                Log.i("V","longitude: "+ place.getLatLng().longitude);
+                addressName = place.getName().toString();
+                Log.i("V", "longitude: " + place.getLatLng().longitude);
             }
 
             @Override
@@ -262,6 +274,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LatLng coordinates = marker.getPosition();
 //  sdafas                  if(coordinates.)
                     myCircle = drawCircle(coordinates);
+
+                   /* TODO:
+                    Useful but unstable feature of passing location information to InfoWindow on DragEnd
+                   List<Address> list = null;
+
+                    try {
+                        list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);*/
+
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
 
@@ -277,10 +302,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
+                    /* TODO:
+                    Useful but unstable feature of passing location information to InfoWindow on Long Click
+
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);*/
+
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
                     setMarker(roundedLatitude, roundedLongitude);
+                    /* TODO
+                    * Put some location information into the marker
+                    * */
                 }
             });
 
@@ -540,7 +581,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
+<<<<<<< HEAD
+        Thread thread1=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    Looper.prepare();
+                    checkAndConnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+      //  thread1.start();
+=======
+>>>>>>> 85263aebdd8866c712183d0e7c06b53e5a2c7e07
 
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -581,9 +641,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     double haversine(double lat1, double lon1, double lat2, double lon2) {
+
         float[] results = new float[1];
-        Location.distanceBetween(lat1,lon1,lat2,lon2,results);
-        return results[0]/1000;
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0] / 1000;
     }
 
     public void detectRadius(Location location) {
@@ -611,11 +672,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lon = location.getLongitude();
         boolean is = false;
         if (myMarker != null && !stop) {
-            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1){
-                is=true;
-            }else{
-                is=false;
-            }
+
+            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1)
+                is = true;
+            else is = false;
+
         }
         return is;
     }
@@ -678,7 +739,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
             }
-            else{
+            else {
                 if (myLocationRequest.getInterval() != locationUpdateFrequency) {
                     myLocationRequest = LocationRequest.create();
                     myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -693,6 +754,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    
     public void changeMapType(String type) {
         switch (type) {
             case "1":
@@ -859,16 +921,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 buildAlertMessageNoWifi();
             }
         }
-
     }
 
-            // Dobavlennij kod! 17.02.2017
-    protected boolean isOnline() {
-        String cs = Context.CONNECTIVITY_SERVICE;
-        ConnectivityManager cm = (ConnectivityManager)
-                getSystemService(cs);
-        if (cm.getActiveNetworkInfo() == null) return false;
-        else return true;
+
+//            // Dobavlennij kod! 17.02.2017
+//    protected boolean isOnline() {
+//        String cs = Context.CONNECTIVITY_SERVICE;
+//        ConnectivityManager cm = (ConnectivityManager)
+//                getSystemService(cs);
+//        if (cm.getActiveNetworkInfo() == null) return false;
+//        else return true;
+//
+//    }
     public void addNotificationAppRunning() {
 
         Notification.Builder mBuilder =
