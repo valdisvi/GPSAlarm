@@ -18,7 +18,7 @@
         android:name="a1stgroup.gpsalarm.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
 
-    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE"/>
+
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
     <uses-permission android:name="a1stgroup.gpsalarm.permission.MAPS_RECEIVE" />
     <uses-permission android:name="com.google.android.providers.gsf.permissions.READ_GSERVICES" />
@@ -36,13 +36,23 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".MapsActivity"
-            android:screenOrientation="portrait">
+            android:name=".MyStartActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".MapsActivity"
+            android:parentActivityName=".MyStartActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".MyPreferencesActivity"
             android:parentActivityName=".MapsActivity"

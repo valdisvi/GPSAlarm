@@ -2,14 +2,10 @@ package a1stgroup.gpsalarm;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
@@ -34,7 +30,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -48,10 +43,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -91,7 +84,6 @@ import java.util.List;
 
 import static android.graphics.Color.rgb;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
-import static android.provider.Settings.System.SETTINGS_CLASSNAME;
 import static java.security.AccessController.getContext;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
@@ -110,7 +102,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
-    private boolean destinationReached = false;
+    private boolean destinationReached  = false;
     private PopupWindow pw;
     Button closePopUp;
     LocationManager locationManager;
@@ -126,24 +118,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent serviceIntent = new Intent(this, CloseService.class);
-        startService(serviceIntent);
-
-        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
-
+        manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
+        
 
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
             initMap();
 
-//            if(!isOnline()) {           // Dobavlennij kod 17.02.2017
-//                try {
-//                    enableWiFi();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+            if(!isOnline()) {           // Dobavlennij kod 17.02.2017
+                try {
+                    enableWiFi();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
@@ -156,7 +145,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
                     if (key.equals("mapType")) {
-                        changeMapType(prefs.getString("2", "2"));
+                        changeMapType(prefs.getString(key, "2"));
                     }
                     if (key.equals("alarmRadius")) {
                         setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
@@ -187,11 +176,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         }
-        try {
-            checkAndConnect();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
@@ -201,8 +185,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onPlaceSelected(Place place) {
                 addressGeo = place.getLatLng();
-                addressName = place.getName().toString();
-                Log.i("V", "longitude: " + place.getLatLng().longitude);
+                addressName =place.getName().toString();
+                Log.i("V","longitude: "+ place.getLatLng().longitude);
             }
 
             @Override
@@ -210,7 +194,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         });
-        addNotificationAppRunning();
+
+
+
+
+
+
+
     }
 
 
@@ -243,7 +233,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
 
         myGoogleMap = googleMap;
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
 
         if (myGoogleMap != null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -283,7 +272,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
 
-                    setMarker(roundedLatitude, roundedLongitude);
+                    setMarker( roundedLatitude, roundedLongitude);
 
                 }
             });
@@ -362,8 +351,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
             myGoogleApiClient.connect();
             zoom(15, 90, 40);
-            if (MyStartActivity.selectedMarkerData != null && MyStartActivity.selectedMarkerData.isReal()) {
-                setMarker( MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
+            if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
+                setMarker( ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
             }
             centerMap();
         } else {
@@ -418,11 +407,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void geoLocate(View view) throws IOException {
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
-        try {
-            checkAndConnect();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -435,14 +419,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
         }
     }
+    void setMarker( double lat, double lng) {
+        if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
 
-    void setMarker(double lat, double lng) {
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
-        try {
-            checkAndConnect();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         if (myMarker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
@@ -496,19 +475,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
+            case R.id.menuItemMyAlarms:
+                Intent i = new Intent(this, ListActivity.class);
+                if (myMarker != null) {
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                }
+                startActivity(i);
+                return true;
             case R.id.menuItemSettings:
                 Intent j = new Intent(this, MyPreferencesActivity.class);
                 if (myMarker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
                 }
                 startActivity(j);
                 return true;
             case R.id.menuItemHelp:
                 Intent k = new Intent(this, MyHelpActivity.class);
                 if (myMarker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
                 }
                 startActivity(k);
                 return true;
@@ -574,6 +561,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        Thread thread1=new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(15000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    Looper.prepare();
+                    checkAndConnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread1.start();
 
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -614,7 +618,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     double haversine(double lat1, double lon1, double lat2, double lon2) {
-
+//        double dLat = Math.toRadians(lat2 - lat1);
+//        double dLon = Math.toRadians(lon2 - lon1);
+//        lat1 = Math.toRadians(lat1);
+//        lat2 = Math.toRadians(lat2);
+//        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+//        double c = 2 * Math.asin(Math.sqrt(a));
         float[] results = new float[1];
         Location.distanceBetween(lat1,lon1,lat2,lon2,results);
         return results[0]/1000;
@@ -629,7 +638,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
+                v.vibrate(1000);
+                mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
@@ -655,19 +665,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showPopup() {
-        addNotificationEnd();
         LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.screen_popup,
                 (ViewGroup) findViewById(R.id.popup_element));
-        pw = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        pw = new PopupWindow(layout, 300, 370, true);
         pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
         pw.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
         pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
 
         pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
-            @Override
+            @Override                                                       
             public void onDismiss() {
                 mySound.pause();
                 removeEverything();
@@ -727,7 +736,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+
+    /*public Action getIndexApiAction0() {
+        Thing object = new Thing.Builder()
+                .setName("Maps Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }*/
+
     public void changeMapType(String type) {
         switch (type) {
             case "1":
@@ -785,7 +810,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return false;
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -805,7 +829,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
         }
     }
-
     private void buildAlertMessageNoGps() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
@@ -818,34 +841,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
-                        System.exit(0);
+                        System.exit(1);
                     }
                 });
         final AlertDialog alert = builder.create();
         alert.show();
     }
 
-    private void buildAlertMessageNoWifi() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
-                .setCancelable(false)
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        try {
-                            enableWiFi();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                })
-                .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                        dialog.cancel();
-                    }
-                });
-        final AlertDialog alert = builder.create();
-        alert.show();
-    }
+
+
+  
+
 
       //Dobavlenij kod!!!   14.02.2017
 
@@ -880,75 +886,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void enableWiFi() throws InterruptedException {
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
-        startActivity(new Intent(wifiManager.ACTION_PICK_WIFI_NETWORK));
         Toast.makeText(getApplicationContext(), "Wi-fi connecting..", Toast.LENGTH_LONG).show();
     }
-
-    public void checkAndConnect() throws InterruptedException {
+    public void checkAndConnect()  {
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         // test for connection
         if(cm!= null) {
             if (!(cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())) {
-                buildAlertMessageNoWifi();
+                wifiManager.setWifiEnabled(false);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(getApplicationContext(), "Wi-fi not available", Toast.LENGTH_LONG).show();
+                    }
+                });
+                try {
+                    TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                    Method methodSet = Class.forName(tm.getClass().getName()).getDeclaredMethod("setDataEnabled", Boolean.TYPE);
+                    methodSet.invoke(tm, true);
+                }catch(Exception e){
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Please turn on mobile network manually", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
             }
         }
+
+    }
+
+            // Dobavlennij kod! 17.02.2017
+    protected boolean isOnline() {
+        String cs = Context.CONNECTIVITY_SERVICE;
+        ConnectivityManager cm = (ConnectivityManager)
+                getSystemService(cs);
+        if (cm.getActiveNetworkInfo() == null) return false;
+        else return true;
+
     }
 
 
-//            // Dobavlennij kod! 17.02.2017
-//    protected boolean isOnline() {
-//        String cs = Context.CONNECTIVITY_SERVICE;
-//        ConnectivityManager cm = (ConnectivityManager)
-//                getSystemService(cs);
-//        if (cm.getActiveNetworkInfo() == null) return false;
-//        else return true;
-//
-//    }
-    public void addNotificationAppRunning() {
-
-        Notification.Builder mBuilder =
-                new Notification.Builder(this)
-                        .setSmallIcon(R.drawable.alarm_marker_40)
-                        .setContentTitle("GPSAlarm")
-                        .setContentText("Programm Running")
-                        .setOngoing(true);
-        Intent resultIntent = new Intent(this,
-
-                MapsActivity.class);
-        resultIntent.setAction(Intent.ACTION_MAIN);
-        resultIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                resultIntent, 0);
-
-        mBuilder.setContentIntent(pendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        mNotificationManager.notify(01, mBuilder.build());
-    }
-
-    public void addNotificationEnd() {
-
-        Notification.Builder mBuilder =
-                new Notification.Builder(this)
-                        .setSmallIcon(R.drawable.ic_launcher_web)
-                        .setContentTitle("GPSAlarm")
-                        .setContentText("You have arrived!")
-                        .setAutoCancel(true)
-                        .setPriority(Notification.PRIORITY_MIN);
-        Intent resultIntent = new Intent(this,
-
-                MapsActivity.class);
-        resultIntent.setAction(Intent.ACTION_MAIN);
-        resultIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                resultIntent, 0);
-
-        mBuilder.setContentIntent(pendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        mNotificationManager.notify(2, mBuilder.build());
-    }
 }
