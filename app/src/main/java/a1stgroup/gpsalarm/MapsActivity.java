@@ -869,6 +869,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 getSystemService(cs);
         if (cm.getActiveNetworkInfo() == null) return false;
         else return true;
+    }
     public void addNotificationAppRunning() {
 
         Notification.Builder mBuilder =
