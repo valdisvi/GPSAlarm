@@ -33,6 +33,7 @@ public class ListActivity extends AppCompatActivity {
 
         final ListView myListView = (ListView) findViewById(R.id.idOfListView);
 
+
         myListView.setAdapter(myAdapter);
 
         myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -82,6 +83,7 @@ public class ListActivity extends AppCompatActivity {
                 return true;
             }
         });
+
     }
 
     private boolean saveMarkerDataList() {

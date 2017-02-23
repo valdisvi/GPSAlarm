@@ -22,23 +22,6 @@
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
         android:layout_height="wrap_content" />
 
-    <!--<EditText-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:inputType="text"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:id="@+id/editText"-->
-    <!--android:hint="@string/hint_search"-->
-    <!--android:layout_gravity="center_horizontal"-->
-    <!--android:lines="1"-->
-    <!--android:imeOptions="actionDone"-->
-    <!--android:layout_alignParentTop="true"-->
-    <!--android:layout_alignParentLeft="true"-->
-    <!--android:layout_alignParentStart="true"-->
-    <!--android:background="@drawable/blueline_textfield_activated_holo_light"-->
-    <!--android:textCursorDrawable="@color/blueline_color"-->
-    <!--android:textColorHighlight="@color/cast_intro_overlay_button_background_color"-->
-    <!--android:textColorHint="@color/wallet_dim_foreground_holo_dark"-->
-    <!--android:textColorLink="@android:color/holo_blue_light" />-->
 
     <LinearLayout
         android:id="@+id/line"
