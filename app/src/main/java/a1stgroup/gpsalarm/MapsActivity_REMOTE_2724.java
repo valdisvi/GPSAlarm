@@ -595,11 +595,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-<<<<<<< HEAD
-                v.vibrate(500);
-=======
                 v.vibrate(1000);
->>>>>>> 578ef20911cc721101beadf705b69bfde8786353
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
@@ -629,7 +625,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.screen_popup,
                 (ViewGroup) findViewById(R.id.popup_element));
-        pw = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        pw = new PopupWindow(layout, 300, 370, true);
         pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
         pw.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017

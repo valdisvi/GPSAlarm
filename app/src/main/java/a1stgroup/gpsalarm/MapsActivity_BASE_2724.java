@@ -6,7 +6,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
@@ -44,10 +43,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -87,7 +84,6 @@ import java.util.List;
 
 import static android.graphics.Color.rgb;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
-import static android.provider.Settings.System.SETTINGS_CLASSNAME;
 import static java.security.AccessController.getContext;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
@@ -124,7 +120,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
         if ( !manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) buildAlertMessageNoGps();
-
+        
 
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
@@ -137,7 +133,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     e.printStackTrace();
                 }
             }
-
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
@@ -200,7 +195,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         });
 
-        }
+
+
+
+
+
+
+    }
 
 
     private void initMap() {
@@ -232,7 +233,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
 
         myGoogleMap = googleMap;
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
 
         if (myGoogleMap != null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -256,6 +256,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     LatLng coordinates = marker.getPosition();
 //  sdafas                  if(coordinates.)
                     myCircle = drawCircle(coordinates);
+
+                   /* TODO:
+                    Useful but unstable feature of passing location information to InfoWindow on DragEnd
+                   List<Address> list = null;
+
+                    try {
+                        list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);*/
+
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
 
@@ -271,10 +284,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         myGoogleMap.clear();
                     }
 
+                    /* TODO:
+                    Useful but unstable feature of passing location information to InfoWindow on Long Click
+
+                    Geocoder gc = new Geocoder(MapsActivity.this);
+                    List<Address> list = null;
+                    try {
+                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Address add = list.get(0);*/
+
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
 
                     setMarker(roundedLatitude, roundedLongitude);
+                    /* TODO
+                    * Put some location information into the marker
+                    * */
                 }
             });
 
@@ -322,8 +351,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
             myGoogleApiClient.connect();
             zoom(15, 90, 40);
-            if (MyStartActivity.selectedMarkerData != null && MyStartActivity.selectedMarkerData.isReal()) {
-                setMarker( MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
+            if (ListActivity.selectedMarkerData != null && ListActivity.selectedMarkerData.isReal()) {
+                setMarker( ListActivity.selectedMarkerData.getLatitude(), ListActivity.selectedMarkerData.getLongitude());
             }
             centerMap();
         } else {
@@ -446,19 +475,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
+            case R.id.menuItemMyAlarms:
+                Intent i = new Intent(this, ListActivity.class);
+                if (myMarker != null) {
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                }
+                startActivity(i);
+                return true;
             case R.id.menuItemSettings:
                 Intent j = new Intent(this, MyPreferencesActivity.class);
                 if (myMarker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
                 }
                 startActivity(j);
                 return true;
             case R.id.menuItemHelp:
                 Intent k = new Intent(this, MyHelpActivity.class);
                 if (myMarker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                    ListActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
+                    ListActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
                 }
                 startActivity(k);
                 return true;
@@ -581,6 +618,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     double haversine(double lat1, double lon1, double lat2, double lon2) {
+//        double dLat = Math.toRadians(lat2 - lat1);
+//        double dLon = Math.toRadians(lon2 - lon1);
+//        lat1 = Math.toRadians(lat1);
+//        lat2 = Math.toRadians(lat2);
+//        double a = Math.pow(Math.sin(dLat / 2), 2) + Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+//        double c = 2 * Math.asin(Math.sqrt(a));
         float[] results = new float[1];
         Location.distanceBetween(lat1,lon1,lat2,lon2,results);
         return results[0]/1000;
@@ -595,11 +638,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-<<<<<<< HEAD
-                v.vibrate(500);
-=======
                 v.vibrate(1000);
->>>>>>> 578ef20911cc721101beadf705b69bfde8786353
+                mySound.seekTo(0);
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
@@ -629,14 +669,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.screen_popup,
                 (ViewGroup) findViewById(R.id.popup_element));
-        pw = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        pw = new PopupWindow(layout, 300, 370, true);
         pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
         pw.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
         pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
 
         pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
-            @Override
+            @Override                                                       
             public void onDismiss() {
                 mySound.pause();
                 removeEverything();
@@ -695,6 +735,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+
+    /*public Action getIndexApiAction0() {
+        Thing object = new Thing.Builder()
+                .setName("Maps Page") // TODO: Define a title for the content shown.
+                // TODO: Make sure this auto-generated URL is correct.
+                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
+                .build();
+        return new Action.Builder(Action.TYPE_VIEW)
+                .setObject(object)
+                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
+                .build();
+    }*/
 
     public void changeMapType(String type) {
         switch (type) {
@@ -784,12 +841,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
-                        System.exit(0);
+                        System.exit(1);
                     }
                 });
         final AlertDialog alert = builder.create();
         alert.show();
     }
+
+
+
+  
 
 
       //Dobavlenij kod!!!   14.02.2017

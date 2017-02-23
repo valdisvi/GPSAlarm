@@ -595,11 +595,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
 
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-<<<<<<< HEAD
                 v.vibrate(500);
-=======
-                v.vibrate(1000);
->>>>>>> 578ef20911cc721101beadf705b69bfde8786353
                 mySound.start();
                 if (!destinationReached) {
                     showPopup();
