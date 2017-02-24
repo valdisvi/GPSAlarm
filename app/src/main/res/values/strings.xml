@@ -8,16 +8,16 @@
     <string name="menu_item_my_alarms">My Alarms</string>
     <string name="hint_enter_name">Enter name</string>
     <string name="menu_item_help">Help</string>
-    <string name="helpText">1. Input your destination in search bar and press on it or just long pressing on the map. \n\n2. The application is now tracking your progress towards the marker, and will issue an alarm once you reach your destination.
-    \n\n3. You can save your alarm point and set starting time for it. Tap on the marker and then press on info popup window \n\n4. You can set time and put program im background mode,  application starts to track your location when destination time comes.
-     \n\n5. If you have saved alarms, just choose it from application main menu \n\n6. By long pressing alarm can be removed from the list \n\n7. Button Pause stops location tracking and switches application to energy saving mode. If you start moving again - you must switch GPS Alarm in active mode again - by pressing Start button.
+    <string name="helpText">1. Set your destination by either searching for the address in the searchbar at the top of the screen or by long pressing on your desired location. \n\n2. The application is now tracking your progress towards the marker, and will issue an alarm once you have reached your destination.
+    \n\n3. You can save your alarm point and set starting time for it. Tap on the marker and after that press on information window \n\n4. You can set a time and put the program in the background mode, the application starts to track your location in selected time.
+     \n\n5. By long pressing alarm can be removed from the list \n\n6. Button Pause stops location tracking and switches application to energy saving mode. If you start moving again - you must switch GPS Alarm in active mode again - by pressing Start button.
         \n -- Settings include:
             \n - Custom alarm sound;
             \n - Notification Radius (distance);
             \n 500 metres by default
-            \n - Selecting a map type;
 \n - Selecting the update frequency
-       \n 10 seconds by default.</string>
+       \n 10 seconds by default.
+    </string>
     <string name="pause">Pause</string>
 
 </resources>
