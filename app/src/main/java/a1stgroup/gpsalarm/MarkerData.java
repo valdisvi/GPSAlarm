@@ -50,7 +50,7 @@ public class MarkerData implements Serializable {
         return enablingTime;
     }
 
-    public void setTime(long enablingTime) {
+    public void setEnablingTime(long enablingTime) {
         this.enablingTime = enablingTime;
     }
 

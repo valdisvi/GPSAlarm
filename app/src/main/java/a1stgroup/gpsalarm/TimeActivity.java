@@ -4,9 +4,11 @@ package a1stgroup.gpsalarm;
  * Created by student on 17.22.2.
  */
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -14,48 +16,35 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.util.Calendar;
+import java.util.Date;
 
 
-public class TimeActivity extends AppCompatActivity {
+public class TimeActivity extends Activity {
 
-    private TextView mInfoTextView;
-    private TimePicker mTimePicker;
-
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
+        final TimePicker timePicker = (TimePicker) myView.findViewById(R.id.timePicker);
+        timePicker.setIs24HourView(true);
 
-        setContentView(R.layout.input_name);
-
-        mInfoTextView = (TextView) findViewById(R.id.textView);
-        mTimePicker = (TimePicker) findViewById(R.id.timePicker);
-
-        Calendar now = Calendar.getInstance();
-
-        mTimePicker.setCurrentHour(now.get(Calendar.HOUR_OF_DAY));
-        mTimePicker.setCurrentMinute(now.get(Calendar.MINUTE));
-
-        mTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
-
+        timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @Override
             public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
-                Toast.makeText(getApplicationContext(), "onTimeChanged",
-                        Toast.LENGTH_SHORT).show();
-
-                mInfoTextView.setText("Часы: " + hourOfDay + "\n" + "Минуты: "
-                        + minute);
+                timePicker.setCurrentHour(hourOfDay);
+                timePicker.setCurrentMinute(minute);
             }
         });
 
-        Button timeButton = (Button) findViewById(R.id.button);
+        Calendar calendar = Calendar.getInstance();
 
-        timeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mInfoTextView.setText(new StringBuilder()
-                        .append(mTimePicker.getCurrentHour()).append(".")
-                        .append(mTimePicker.getCurrentMinute()));
-            }
-        });
-    }
+        Date currentDate = calendar.getTime();
+        int hour = timePicker.getCurrentHour();
+        int minutes = timePicker.getCurrentMinute();
+        int year = calendar.YEAR;
+        int month = currentDate.getMonth();
+        int day = 23;
+        Date enablingDate = new Date(117, month, day, hour, minutes);
+        Calendar calendarForSettingEnablingDate = Calendar.getInstance();
+        calendarForSettingEnablingDate.setTime(enablingDate);
+
+        }
 }

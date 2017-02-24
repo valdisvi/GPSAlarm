@@ -3,9 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="a1stgroup.gpsalarm.MapsActivity" >
 
-    <item
+   <!-- <item
         android:id="@+id/menuItemMyAlarms"
-        android:title="@string/menu_item_my_alarms" />
+        android:title="@string/menu_item_my_alarms" /> -->
 
     <item
         android:id="@+id/menuItemSettings"
