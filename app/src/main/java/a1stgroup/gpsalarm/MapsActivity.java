@@ -128,6 +128,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Intent serviceIntent = new Intent(this, CloseService.class);
         startService(serviceIntent);
+        Intent activityIntent = new Intent(this, SplashScreen.class);
+        startService(activityIntent);
 
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
@@ -136,9 +138,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
             initMap();
-
-     
-
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
@@ -869,11 +868,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 getSystemService(cs);
         if (cm.getActiveNetworkInfo() == null) return false;
         else return true;
+    }
+
     public void addNotificationAppRunning() {
 
         Notification.Builder mBuilder =
                 new Notification.Builder(this)
-                        .setSmallIcon(R.drawable.alarm_marker_40)
+                        .setSmallIcon(R.drawable.alarm1)
                         .setContentTitle("GPSAlarm")
                         .setContentText("Programm Running")
                         .setOngoing(true);
