@@ -537,7 +537,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onInfoWindowClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
-            View myView = (LayoutInflater.from(this)).inflate(R.layout.dialog_inputname, null);
+            View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
 
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setView(myView);
