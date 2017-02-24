@@ -13,13 +13,13 @@ Application requires an active GPS uplink, and having a network connection is a 
 
 # Installation
 
-Clone the repository and compile it for your device using Android Studio or use this download link for the .APK file: https://www.dropbox.com/s/yeqxvs61k1xf1gf/GPSAlarm.apk?dl=0
+Clone the repository and compile it for your device using Android Studio or use this download link for the .APK file: https://www.dropbox.com/s/yiwshyh2aykmbod/GPSAlarm.apk?dl=0
 
 # Instructions
 
-* Set your destination by either searching for the adress in the searchbar at the top of the screen or by performing a long press on your desired location. The application is now tracking your progress towards the marker, and will issue an alarm once you reach your destination.
+* Set your destination by either searching for the adress in the searchbar at the top of the screen or by performing a long press on your desired location. The application is tracking your progress towards the marker, and will issue an alarm once you reach your destination.
 
-* To add your currently placed marker to the list of My Alarms, you need to tap on the marker and then perform a long press on the popup that points towards the marker. You will be prompted to choose a name for your saved marker. Access your marker anytime using the menu at the top right side of the screen from the menu item My Alarms.
+* You can save your alarm point and set starting time for it. Click on the marker and press once on information window. 
 
 * The top right of the application contains a menu with several options. 
   * My Alarms contains the list of markers you have saved. Tap on your desired location to immediately place a marker on it and start the tracking process. You can remove items from this list by performing a long press on your desired item.
