@@ -102,7 +102,6 @@ public class MyStartActivity extends AppCompatActivity {
                     } else {
                         long msDelay = destinationDate - currentDate;
                         long minutesToEnable = TimeUnit.MINUTES.convert(msDelay, TimeUnit.MILLISECONDS);
-                        //TimeConverter timeConverter = new TimeConverter(msDelay);
                         Toast.makeText(MyStartActivity.this, "Alarm Set: " + selectedMarkerData.getName() + " will be enabled after " +
                                 minutesToEnable + " minutes", Toast.LENGTH_LONG).show();
                         //  Toast.makeText(ListActivity.this, "Latitude: " + selectedMarkerData.getLatitude(), Toast.LENGTH_SHORT).show();
