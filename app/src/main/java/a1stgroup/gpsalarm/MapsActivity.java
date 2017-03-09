@@ -690,11 +690,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lon = location.getLongitude();
         boolean is = false;
         if (myMarker != null && !stop) {
-            if ((haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1){
-                is=true;
-            }else{
-                is=false;
-            }
+            is = (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1;
         }
         return is;
     }
@@ -932,7 +928,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void enableWiFi() throws InterruptedException {
         wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
-        startActivity(new Intent(wifiManager.ACTION_PICK_WIFI_NETWORK));
+        startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
         Toast.makeText(getApplicationContext(), "Wi-fi connecting..", Toast.LENGTH_LONG).show();
     }
 
@@ -952,8 +948,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         String cs = Context.CONNECTIVITY_SERVICE;
         ConnectivityManager cm = (ConnectivityManager)
                 getSystemService(cs);
-        if (cm.getActiveNetworkInfo() == null) return false;
-        else return true;
+        return cm.getActiveNetworkInfo() != null;
     }
     public void addNotificationAppRunning() {
 
