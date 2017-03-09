@@ -79,7 +79,6 @@ import java.util.Date;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
-    Location loc;
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
     Marker myMarker;    // Separate Marker object to allow operations with it.
@@ -89,7 +88,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     static String ringtonePath;
     LocationRequest myLocationRequest;  // Global variable for requesting location
     static long locationUpdateFrequency;
-    public static final double earthRadius = 6372.8; // Radius of Earth, in kilometers
     private boolean stop = false;
     private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
@@ -97,13 +95,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean destinationReached = false;
     private PopupWindow pw;
     Button closePopUp;
-    LocationManager locationManager;
-    LatLng latLng;
     private LocationManager manager;
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
-    private GoogleApiClient client;
     long enablingTime;
     Calendar calendar = Calendar.getInstance();
     //Date date = new Date(2020, 12, 24);
@@ -186,7 +181,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -714,7 +709,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onLocationChanged(Location location) {
         // Called every time user changes location
         stop = false;
-        loc=location;
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }

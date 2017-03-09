@@ -14,7 +14,6 @@ import android.support.v4.app.NotificationCompat;
 
 
 public class TrackerService extends IntentService {
-    MapsActivity mapsActivity;
     NotificationManager mapNotificationManager;
 
 
@@ -24,7 +23,6 @@ public class TrackerService extends IntentService {
     }
 
     protected void onHandleIntent(Intent intent) {
-            mapsActivity.trackLocation();
             sendNotification("Tracking");
     }
 
