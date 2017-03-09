@@ -39,16 +39,4 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
                 PackageManager.DONT_KILL_APP);
     }
 
-    public void cancelAlarm(Context context) {
-        if(alarmManager!=null) {
-            alarmManager.cancel(alarmIntent);
-        }
-
-        ComponentName receiver = new ComponentName(context, MapBootReceiver.class);
-        PackageManager pm = context.getPackageManager();
-
-        pm.setComponentEnabledSetting(receiver,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
-    }
 }
