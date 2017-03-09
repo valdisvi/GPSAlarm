@@ -96,7 +96,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     long enablingTime;
     Calendar calendar = Calendar.getInstance();
     private boolean stop = false;
-    private SharedPreferences.OnSharedPreferenceChangeListener prefListener;
     private boolean destinationReached = false;
     private PopupWindow pw;
     private LocationManager manager;
@@ -127,14 +126,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             setContentView(R.layout.activity_map);
             initMap();
 
-//            if(!isOnline()) {           // Dobavlennij kod 17.02.2017
-//                try {
-//                    enableWiFi();
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
             setLocationUpdateFrequency(Long.parseLong(prefs.getString("locationUpdateFrequency", "10000")));
@@ -142,7 +133,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             initSound();
 
 
-            prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
                     if (key.equals("mapType")) {
@@ -575,7 +566,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Change priority to balanced
          */
         myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency);
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
@@ -701,7 +692,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     myLocationRequest = LocationRequest.create();
                     myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
                     myLocationRequest.setInterval(locationUpdateFrequency);
-                    myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
+                    myLocationRequest.setFastestInterval(locationUpdateFrequency);
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                     }
