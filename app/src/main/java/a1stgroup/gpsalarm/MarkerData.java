@@ -3,11 +3,6 @@ package a1stgroup.gpsalarm;
 
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 
 public class MarkerData implements Serializable {
 

@@ -4,16 +4,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.appindexing.Action;
@@ -30,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 
 import static a1stgroup.gpsalarm.MapsActivity.markerDataList;
-import static android.R.id.list;
 
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
@@ -53,7 +49,7 @@ public class MyStartActivity extends AppCompatActivity {
             markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile");
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -78,7 +74,7 @@ public class MyStartActivity extends AppCompatActivity {
                 public int compare(MarkerData a1, MarkerData a2) {
 
                     // String implements Comparable
-                    return (a1.getName().toString()).compareTo(a2.getName().toString());
+                    return (a1.getName()).compareTo(a2.getName());
                 }
             });
 
