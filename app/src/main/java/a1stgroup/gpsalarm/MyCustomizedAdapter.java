@@ -25,11 +25,11 @@ public class MyCustomizedAdapter extends ArrayAdapter<MarkerData> {
 
         View theView = myInflater.inflate(R.layout.row_layout, parent, false); // Last two arguments are significant if we inflate this into a parent.
 
-        String rindinja = getItem(position).getName();
+        String cline = getItem(position).getName();
 
         TextView myTextView = (TextView) theView.findViewById(R.id.customTextView);
 
-        myTextView.setText(rindinja);
+        myTextView.setText(cline);
 
         return theView;
     }
