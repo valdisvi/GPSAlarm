@@ -42,7 +42,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -165,13 +164,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             } catch (ClassNotFoundException e) {
                 Toast.makeText(this, "Failed to retrieve list from file", Toast.LENGTH_SHORT).show();
                 Log.e("File Read error: ", e.getMessage());
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.e("Exception: ", e.getMessage());
             }
 
         }
-            checkAndConnect();
+        checkAndConnect();
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -182,8 +180,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onPlaceSelected(Place place) {
                 addressGeo = place.getLatLng();
-                addressName =place.getName().toString();
-                Log.i("V","longitude: "+ place.getLatLng().longitude);
+                addressName = place.getName().toString();
+                Log.i("V", "longitude: " + place.getLatLng().longitude);
             }
 
             @Override
@@ -343,9 +341,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             myGoogleApiClient.connect();
             zoom(15, 90, 40);
             if (MyStartActivity.selectedMarkerData != null && MyStartActivity.selectedMarkerData.isReal()) {
-                setMarker( MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
-		enablingTime = MyStartActivity.selectedMarkerData.getEnablingTime();
-}
+                setMarker(MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
+                enablingTime = MyStartActivity.selectedMarkerData.getEnablingTime();
+            }
             centerMap();
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -356,17 +354,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void zoom(float zoom, float bearing, float tilt) {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-            if (location != null)
-            {
-                myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));                CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                    .zoom(zoom)                   // Sets the zoom
-                    .bearing(bearing)                // Sets the orientation of the camera to east
-                    .tilt(tilt)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
+        Criteria criteria = new Criteria();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+            if (location != null) {
+                myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                        .zoom(zoom)                   // Sets the zoom
+                        .bearing(bearing)                // Sets the orientation of the camera to east
+                        .tilt(tilt)                   // Sets the tilt of the camera to 30 degrees
+                        .build();                   // Creates a CameraPosition from the builder
                 myGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-            }        }
+            }
+        }
     }
 
     private void centerMap() {
@@ -376,8 +377,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (myMarker != null) {
             LatLng myLocation = new LatLng(myMarker.getPosition().latitude, myMarker.getPosition().longitude);
             myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
-        }
-        else if (location != null) {
+        } else if (location != null) {
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
             myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         } else {
@@ -399,7 +399,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void geoLocate(View view) {
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
-            checkAndConnect();
+        checkAndConnect();
 
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -415,7 +415,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     void setMarker(double lat, double lng) {
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
-            checkAndConnect();
+        checkAndConnect();
 
         if (myMarker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
@@ -474,7 +474,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (myMarker != null) {
                     MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
                     MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
-                   MyStartActivity.selectedMarkerData.setEnablingTime(enablingTime);
                 }
                 startActivity(j);
                 return true;
@@ -483,7 +482,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (myMarker != null) {
                     MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
                     MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
-                    MyStartActivity.selectedMarkerData.setEnablingTime(enablingTime);
                 }
                 startActivity(k);
                 return true;
@@ -495,23 +493,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void onInfoWindowClick(Marker marker) {
         // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
-            View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
+        View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
 
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setView(myView);
         final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(userInput.getWindowToken(), 0);
-        final TimePicker timePicker = (TimePicker) myView.findViewById(R.id.timePicker);
-        timePicker.setIs24HourView(true);
-
-        timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
-            @Override
-            public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
-                timePicker.setCurrentHour(hourOfDay);
-                timePicker.setCurrentMinute(minute);
-            }
-        });
         alertBuilder.setCancelable(true)
                 .setTitle("Save Alarm")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -535,26 +523,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             calendar = Calendar.getInstance();
                         }
                         Date currentDate = calendar.getTime();
-                        int hour = timePicker.getCurrentHour();
-                        int minutes = timePicker.getCurrentMinute();
                         int year = currentDate.getYear();
                         int month = calendar.get(Calendar.MONTH);
-                        //int year = yearToConvert;
                         int day = calendar.get(Calendar.DAY_OF_MONTH);
-                        Date enablingDate = new Date(year, month, day, hour, minutes);
+                        Date enablingDate = new Date(year, month, day);
                         Calendar calendarForSettingEnablingDate = Calendar.getInstance();
                         calendarForSettingEnablingDate.setTime(enablingDate);
                         enablingTime = calendarForSettingEnablingDate.getTimeInMillis();
-
-                        addMarkerDataToList(name, enablingTime);
+                        addMarkerDataToList(name);
                         myMarker.hideInfoWindow();
                     }
                 });
 
 
-            Dialog myDialog = alertBuilder.create();
-            myDialog.show();
-        }
+        Dialog myDialog = alertBuilder.create();
+        myDialog.show();
+    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -569,7 +553,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest.setFastestInterval(locationUpdateFrequency);
 
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
         }
 
@@ -582,7 +566,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency/4);
+        myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
@@ -602,8 +586,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     double haversine(double lat1, double lon1, double lat2, double lon2) {
 
         float[] results = new float[1];
-        Location.distanceBetween(lat1,lon1,lat2,lon2,results);
-        return results[0]/1000;
+        Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+        return results[0] / 1000;
     }
 
     public void detectRadius(Location location) {
@@ -670,8 +654,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         if (enablingTime > Calendar.getInstance().getTimeInMillis() && enablingTime != 0) {
             stop = true;
-        }
-        else {
+        } else {
             detectRadius(location);
 
             if (detectFreq(location)) {
@@ -686,8 +669,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
-            }
-            else{
+            } else {
                 if (myLocationRequest.getInterval() != locationUpdateFrequency) {
                     myLocationRequest = LocationRequest.create();
                     myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -734,19 +716,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList (String name, long enablingTime){
+    public void addMarkerDataToList(String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
-        toBeAdded.setEnablingTime(enablingTime);
         toBeAdded.setLatitude(myMarker.getPosition().latitude);
         toBeAdded.setLongitude(myMarker.getPosition().longitude);
         if (markerDataList.add(toBeAdded)) {
-            if(saveMarkerDataList())
+            if (saveMarkerDataList())
                 Toast.makeText(this, "Alarm saved", Toast.LENGTH_SHORT).show();
             else
                 Toast.makeText(this, "File write failed", Toast.LENGTH_SHORT).show();
-        }
-        else
+        } else
             Toast.makeText(this, "Failed to add alarm to list", Toast.LENGTH_SHORT).show();
     }
 
@@ -765,16 +745,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case MY_PERMISSION_FINE_LOCATIONS :
+            case MY_PERMISSION_FINE_LOCATIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {                        myGoogleMap.setMyLocationEnabled(true);                        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
-                            .addApi(LocationServices.API)
-                            .addConnectionCallbacks(this)
-                            .addOnConnectionFailedListener(this)
-                            .build();                        myGoogleApiClient.connect();
-                    }                }
-                else{
-                    Toast.makeText(getApplicationContext(),"this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        myGoogleMap.setMyLocationEnabled(true);
+                        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
+                                .addApi(LocationServices.API)
+                                .addConnectionCallbacks(this)
+                                .addOnConnectionFailedListener(this)
+                                .build();
+                        myGoogleApiClient.connect();
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
                     ActivityCompat.finishAffinity(MapsActivity.this);
                     System.exit(0);
                 }
@@ -802,7 +785,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-      //Dobavlenij kod!!!   14.02.2017
+    //Dobavlenij kod!!!   14.02.2017
 
     private void buildAlertMessageNoWifi() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -824,25 +807,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void stopTrackingBut(View view) {
 
-        Button button = (Button)findViewById(R.id.button4);
+        Button button = (Button) findViewById(R.id.button4);
 
-        if(flag) {
+        if (flag) {
             button.setText("Start");
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
 
-            if(myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
+            if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
             else return;
-        }
-
-        else {
+        } else {
             button.setText("Pause");
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
 
-            if(!myGoogleApiClient.isConnected()) myGoogleApiClient.connect();
+            if (!myGoogleApiClient.isConnected()) myGoogleApiClient.connect();
             else return;
         }
 
@@ -858,7 +839,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void checkAndConnect() {
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         // test for connection
-        if(cm!= null) {
+        if (cm != null) {
             if (!(cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())) {
                 buildAlertMessageNoWifi();
             }

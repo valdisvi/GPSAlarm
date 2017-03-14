@@ -44,9 +44,7 @@ public class MyStartActivity extends AppCompatActivity {
         if (markerDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);
             startActivity(intent);
-        }
-
-        else {
+        } else {
 
             setContentView(R.layout.activity_start);
 
@@ -79,18 +77,18 @@ public class MyStartActivity extends AppCompatActivity {
                     selectedMarkerData = (MarkerData) myAdapter.getItem(i);
                     //timeToEnable = selectedMarkerData.getTime() - Calendar.getInstance();
                     //long startTime = selectedMarkerData.getTime().getTimeInMillis();
-                    long destinationDate = selectedMarkerData.getEnablingTime();
+                    //long destinationDate = selectedMarkerData.getEnablingTime();
                     long currentDate = Calendar.getInstance().getTimeInMillis();
-                    if (destinationDate < currentDate) {
-                        selectedMarkerData.setEnablingTime(0);
-                    } else {
-                        long msDelay = destinationDate - currentDate;
-                        long minutesToEnable = TimeUnit.MINUTES.convert(msDelay, TimeUnit.MILLISECONDS);
-                        Toast.makeText(MyStartActivity.this, "Alarm Set: " + selectedMarkerData.getName() + " will be enabled after " +
-                                minutesToEnable + " minutes", Toast.LENGTH_LONG).show();
-                        //  Toast.makeText(ListActivity.this, "Latitude: " + selectedMarkerData.getLatitude(), Toast.LENGTH_SHORT).show();
-                        //  Toast.makeText(ListActivity.this, "Longitude: " + selectedMarkerData.getLongitude(), Toast.LENGTH_SHORT).show();
-                    }
+                    //if (destinationDate < currentDate) {
+                    //    selectedMarkerData.setEnablingTime(0);
+                    //} else {
+                    long msDelay = 60000; // TODO should calculate it properly
+                    long minutesToEnable = TimeUnit.MINUTES.convert(msDelay, TimeUnit.MILLISECONDS);
+                    Toast.makeText(MyStartActivity.this, "Alarm Set: " + selectedMarkerData.getName() + " will be enabled after " +
+                            minutesToEnable + " minutes", Toast.LENGTH_LONG).show();
+                    //  Toast.makeText(ListActivity.this, "Latitude: " + selectedMarkerData.getLatitude(), Toast.LENGTH_SHORT).show();
+                    //  Toast.makeText(ListActivity.this, "Longitude: " + selectedMarkerData.getLongitude(), Toast.LENGTH_SHORT).show();
+                    //}
                     Intent myIntent = new Intent(MyStartActivity.this, MapsActivity.class);
                     startActivity(myIntent);
                 }
