@@ -45,11 +45,8 @@ public class MyStartActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MapsActivity.class);
             startActivity(intent);
         } else {
-
             setContentView(R.layout.activity_start);
-
             final ArrayAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
-
             ListView listView = (ListView) findViewById(R.id.listView);
 
             Collections.sort(markerDataList, new Comparator<MarkerData>() {
@@ -58,7 +55,6 @@ public class MyStartActivity extends AppCompatActivity {
 
                 @Override
                 public int compare(MarkerData a1, MarkerData a2) {
-
                     // String implements Comparable
                     return (a1.getName()).compareTo(a2.getName());
                 }
@@ -66,29 +62,12 @@ public class MyStartActivity extends AppCompatActivity {
 
             listView.setAdapter(myAdapter);
 
-            final ListView myListView2 = (ListView) findViewById(R.id.listView);
+            final ListView myListView2 = listView;
             myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02,2017
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                    //  String pickedWord = "You touched " + String.valueOf(adapterView.getItemAtPosition(i));
-                    //  Toast.makeText(ListActivity.this, pickedWord, Toast.LENGTH_LONG).show();
-
                     selectedMarkerData = (MarkerData) myAdapter.getItem(i);
-                    //timeToEnable = selectedMarkerData.getTime() - Calendar.getInstance();
-                    //long startTime = selectedMarkerData.getTime().getTimeInMillis();
-                    //long destinationDate = selectedMarkerData.getEnablingTime();
-                    long currentDate = Calendar.getInstance().getTimeInMillis();
-                    //if (destinationDate < currentDate) {
-                    //    selectedMarkerData.setEnablingTime(0);
-                    //} else {
-                    long msDelay = 60000; // TODO should calculate it properly
-                    long minutesToEnable = TimeUnit.MINUTES.convert(msDelay, TimeUnit.MILLISECONDS);
-                    Toast.makeText(MyStartActivity.this, "Alarm Set: " + selectedMarkerData.getName() + " will be enabled after " +
-                            minutesToEnable + " minutes", Toast.LENGTH_LONG).show();
-                    //  Toast.makeText(ListActivity.this, "Latitude: " + selectedMarkerData.getLatitude(), Toast.LENGTH_SHORT).show();
-                    //  Toast.makeText(ListActivity.this, "Longitude: " + selectedMarkerData.getLongitude(), Toast.LENGTH_SHORT).show();
-                    //}
+                    Toast.makeText(MyStartActivity.this, "Alarm '" + selectedMarkerData.getName() + "' is set", Toast.LENGTH_LONG).show();
                     Intent myIntent = new Intent(MyStartActivity.this, MapsActivity.class);
                     startActivity(myIntent);
                 }
@@ -109,13 +88,11 @@ public class MyStartActivity extends AppCompatActivity {
                             saveMarkerDataList();
                         }
                     });
-
                     alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.cancel();
-
                         }
                     });
                     alert.show();
@@ -138,11 +115,9 @@ public class MyStartActivity extends AppCompatActivity {
         return false;
     }
 
-
     public void toMap(View view) {
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }
-
 
 }

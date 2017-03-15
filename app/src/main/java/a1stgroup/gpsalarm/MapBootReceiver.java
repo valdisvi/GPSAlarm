@@ -9,11 +9,10 @@ import android.content.Intent;
  */
 
 public class MapBootReceiver extends BroadcastReceiver {
-    TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
+    private TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED"))
-        {
+        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
             alarm.setAlarm(context);
         }
         Intent serviceIntent = new Intent(context, TrackerService.class);

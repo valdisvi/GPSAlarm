@@ -92,7 +92,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
-    long enablingTime;
     Calendar calendar = Calendar.getInstance();
     private boolean stop = false;
     private boolean destinationReached = false;
@@ -153,7 +152,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
 
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
-            Intent mapIntent = new Intent(this, TrackerAlarmReceiver.class);
 
             alarm.setAlarm(MapsActivity.this);
 
@@ -241,7 +239,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
-                    Geocoder gc = new Geocoder(MapsActivity.this);
+
                     LatLng coordinates = marker.getPosition();
 //  sdafas                  if(coordinates.)
                     myCircle = drawCircle(coordinates);
@@ -342,7 +340,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             zoom(15, 90, 40);
             if (MyStartActivity.selectedMarkerData != null && MyStartActivity.selectedMarkerData.isReal()) {
                 setMarker(MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
-                enablingTime = MyStartActivity.selectedMarkerData.getEnablingTime();
             }
             centerMap();
         } else {
@@ -529,7 +526,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Date enablingDate = new Date(year, month, day);
                         Calendar calendarForSettingEnablingDate = Calendar.getInstance();
                         calendarForSettingEnablingDate.setTime(enablingDate);
-                        enablingTime = calendarForSettingEnablingDate.getTimeInMillis();
                         addMarkerDataToList(name);
                         myMarker.hideInfoWindow();
                     }
@@ -542,7 +538,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
 
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -558,19 +553,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-    }
-
-    // TODO
-    // Should check, what to do with this method
-    protected void trackLocation() {
-        myLocationRequest = LocationRequest.create();
-        myLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency / 4);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-        }
     }
 
     @Override
@@ -652,36 +634,32 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
-        if (enablingTime > Calendar.getInstance().getTimeInMillis() && enablingTime != 0) {
-            stop = true;
+        detectRadius(location);
+        if (detectFreq(location)) {
+            if (myLocationRequest.getInterval() != 1000) {
+
+                myLocationRequest.setInterval(1000);
+                myLocationRequest.setFastestInterval(1000 / 2);
+                myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+                }
+                LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+            }
         } else {
-            detectRadius(location);
-
-            if (detectFreq(location)) {
-                if (myLocationRequest.getInterval() != 1000) {
-
-                    myLocationRequest.setInterval(1000);
-                    myLocationRequest.setFastestInterval(1000 / 2);
-                    myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-                    }
+            if (myLocationRequest.getInterval() != locationUpdateFrequency) {
+                myLocationRequest = LocationRequest.create();
+                myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                myLocationRequest.setInterval(locationUpdateFrequency);
+                myLocationRequest.setFastestInterval(locationUpdateFrequency);
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
-            } else {
-                if (myLocationRequest.getInterval() != locationUpdateFrequency) {
-                    myLocationRequest = LocationRequest.create();
-                    myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                    myLocationRequest.setInterval(locationUpdateFrequency);
-                    myLocationRequest.setFastestInterval(locationUpdateFrequency);
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-                    }
-                    LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-                }
+                LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
             }
         }
+
     }
 
     public void changeMapType(String type) {

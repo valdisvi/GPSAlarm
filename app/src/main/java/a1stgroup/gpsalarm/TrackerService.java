@@ -13,7 +13,7 @@ import android.support.v4.app.NotificationCompat;
  */
 
 
-public class TrackerService extends IntentService {
+class TrackerService extends IntentService {
     NotificationManager mapNotificationManager;
 
 

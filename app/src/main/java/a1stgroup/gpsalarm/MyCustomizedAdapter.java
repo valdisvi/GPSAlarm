@@ -11,7 +11,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 
-public class MyCustomizedAdapter extends ArrayAdapter<MarkerData> {
+class MyCustomizedAdapter extends ArrayAdapter<MarkerData> {
 
     public MyCustomizedAdapter(Context context, ArrayList<MarkerData> markerDataArrayList) {
         super(context, R.layout.row_layout, markerDataArrayList);

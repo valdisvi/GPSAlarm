@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-public final class InternalStorage {
+final class InternalStorage {
 
     private InternalStorage() {
     }
