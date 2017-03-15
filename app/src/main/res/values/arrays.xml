@@ -34,7 +34,7 @@
         <item>5000</item>
     </string-array>
 
-    <string-array name="updateFrequencyMenuEntries">
+    <string-array name="updateIntervalMenuEntries">
         <item>5 seconds</item>
         <item>10 seconds</item>
         <item>30 seconds</item>
@@ -42,7 +42,7 @@
         <item>3 minutes</item>
     </string-array>
 
-    <string-array name="updateFrequencyValues">
+    <string-array name="updateIntervalValues">
         <item>5000</item>
         <item>10000</item>
         <item>30000</item>

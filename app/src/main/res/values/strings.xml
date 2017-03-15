@@ -15,7 +15,7 @@
             \n - Custom alarm sound;
             \n - Notification Radius (distance);
             \n 500 metres by default
-\n - Selecting the update frequency
+\n - Selecting the update interval
        \n 10 seconds by default.
     </string>
     <string name="pause">Pause</string>

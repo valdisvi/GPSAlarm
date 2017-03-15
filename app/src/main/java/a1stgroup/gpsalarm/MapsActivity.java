@@ -12,7 +12,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
@@ -78,7 +77,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     static String ringtonePath;
-    static long locationUpdateFrequency;
+    static long locationUpdateInterval;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -126,7 +125,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
-            setLocationUpdateFrequency(Long.parseLong(prefs.getString("locationUpdateFrequency", "10000")));
+            setLocationUpdateInterval(Long.parseLong(prefs.getString("locationUpdateInterval", "10000")));
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
 
@@ -145,8 +144,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
                         initSound();
                     }
-                    if (key.equals("locationUpdateFrequency")) {
-                        setLocationUpdateFrequency(Long.parseLong(prefs.getString(key, "10000")));
+                    if (key.equals("locationUpdateInterval")) {
+                        setLocationUpdateInterval(Long.parseLong(prefs.getString(key, "10000")));
                     }
                 }
             };
@@ -544,8 +543,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         /* TODO
         Change priority to balanced
          */
-        myLocationRequest.setInterval(locationUpdateFrequency);
-        myLocationRequest.setFastestInterval(locationUpdateFrequency);
+        myLocationRequest.setInterval(locationUpdateInterval);
+        myLocationRequest.setFastestInterval(locationUpdateInterval);
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -591,7 +590,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public boolean detectFreq(Location location) {
+    public boolean detectInterval(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         boolean is = false;
@@ -635,7 +634,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
         }
         detectRadius(location);
-        if (detectFreq(location)) {
+        if (detectInterval(location)) {
             if (myLocationRequest.getInterval() != 1000) {
 
                 myLocationRequest.setInterval(1000);
@@ -648,11 +647,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
             }
         } else {
-            if (myLocationRequest.getInterval() != locationUpdateFrequency) {
+            if (myLocationRequest.getInterval() != locationUpdateInterval) {
                 myLocationRequest = LocationRequest.create();
                 myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                myLocationRequest.setInterval(locationUpdateFrequency);
-                myLocationRequest.setFastestInterval(locationUpdateFrequency);
+                myLocationRequest.setInterval(locationUpdateInterval);
+                myLocationRequest.setFastestInterval(locationUpdateInterval);
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
                 }
@@ -686,8 +685,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alarmRadius = newRadius;
     }
 
-    public void setLocationUpdateFrequency(long newFrequency) {
-        locationUpdateFrequency = newFrequency;
+    public void setLocationUpdateInterval(long newInterval) {
+        locationUpdateInterval = newInterval;
     }
 
     public void initSound() {
