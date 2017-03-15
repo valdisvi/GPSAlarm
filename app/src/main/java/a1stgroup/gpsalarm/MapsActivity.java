@@ -78,6 +78,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     static String ringtonePath;
     static long locationUpdateInterval;
+    static int maximumSpeed;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -126,6 +127,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
             setLocationUpdateInterval(Long.parseLong(prefs.getString("locationUpdateInterval", "10000")));
+            maximumSpeed = prefs.getInt("maximumSpeed", 100);
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
 
@@ -574,11 +576,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void detectRadius(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-
+        double distance = haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude);
+        System.out.print("distance:" + distance);
         if (myMarker != null && !stop) {
-
-            if (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) <= myCircle.getRadius() / 1000) {
-
+            if (distance <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
                 mySound.start();
@@ -586,6 +587,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     showPopup();
                 }
                 destinationReached = true;
+            } else {
+                // Set interval for location
+                long interval = (long) (maximumSpeed * distance / 3.6);
+                myLocationRequest.setInterval(interval); //
+                System.out.print("myLocation.setInterval set to:" + interval);
+
             }
         }
     }
