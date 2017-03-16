@@ -75,7 +75,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     static String ringtonePath;
-    static long locationUpdateInterval;
     static int maximumSpeed;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     GoogleMap myGoogleMap;
@@ -122,7 +121,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
-            setLocationUpdateInterval(Long.parseLong(prefs.getString("locationUpdateInterval", "10000")));
             maximumSpeed = Integer.parseInt(prefs.getString("maximumSpeed", "100"));
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
@@ -142,9 +140,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
                         initSound();
                     }
-                    if (key.equals("locationUpdateInterval")) {
-                        setLocationUpdateInterval(Long.parseLong(prefs.getString(key, "10000")));
-                    }
+
                 }
             };
 
@@ -602,10 +598,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void setAlarmRadius(int newRadius) {
         alarmRadius = newRadius;
-    }
-
-    public void setLocationUpdateInterval(long newInterval) {
-        locationUpdateInterval = newInterval;
     }
 
     public void initSound() {

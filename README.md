@@ -27,7 +27,6 @@ Clone the repository and compile it for your device using Android Studio or use 
     * Custom alarm sound from your phone's library;
     * Ability to set the radius(distance) when you will be notified;
     * Selecting a map type(normal, satellite, hybrid);
-    * Selecting the interval at which the program updates your location and checks if the destination is reached.
   * Help menu contains largely the same information as this paragraph.
   
 # Planned features

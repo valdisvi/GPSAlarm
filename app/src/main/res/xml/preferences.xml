@@ -27,14 +27,6 @@
         android:entryValues="@array/mapTypeValues" />
 
     <ListPreference
-        android:title="Location Update time interval"
-        android:summary="Set shortest update time for your location.\nLook for a balance between precision and battery drain. \nIf your device possesses location data by another application, then GPSAlarm will refresh your position depending on settings of that application."
-        android:key="locationUpdateInterval"
-        android:defaultValue="10000"
-        android:entries="@array/updateIntervalMenuEntries"
-        android:entryValues="@array/updateIntervalValues" />
-
-    <ListPreference
         android:defaultValue="100"
         android:entries="@array/maximumSpeedMenuEntries"
         android:entryValues="@array/maximumSpeedValues"

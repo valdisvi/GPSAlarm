@@ -34,22 +34,6 @@
         <item>5000</item>
     </string-array>
 
-    <string-array name="updateIntervalMenuEntries">
-        <item>5 seconds</item>
-        <item>10 seconds</item>
-        <item>30 seconds</item>
-        <item>1 minute</item>
-        <item>3 minutes</item>
-    </string-array>
-
-    <string-array name="updateIntervalValues">
-        <item>5000</item>
-        <item>10000</item>
-        <item>30000</item>
-        <item>60000</item>
-        <item>180000</item>
-    </string-array>
-
     <string-array name="maximumSpeedMenuEntries">
         <item>20</item>
         <item>50</item>

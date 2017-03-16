@@ -28,9 +28,6 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
         Intent intent = new Intent(context,TrackerService.class);
         alarmIntent = PendingIntent.getBroadcast(context,0,intent,0);
 
-        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,MapsActivity.locationUpdateInterval,
-                MapsActivity.locationUpdateInterval,alarmIntent);
-
         ComponentName receiver = new ComponentName(context, MapBootReceiver.class);
         PackageManager pm = context.getPackageManager();
 
