@@ -93,7 +93,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LatLng addressGeo;
     String addressName;
     Calendar calendar = Calendar.getInstance();
-    private boolean stop = false;
     private boolean destinationReached = false;
     private PopupWindow pw;
     private LocationManager manager;
@@ -127,7 +126,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
             setLocationUpdateInterval(Long.parseLong(prefs.getString("locationUpdateInterval", "10000")));
-            maximumSpeed = prefs.getInt("maximumSpeed", 100);
+            maximumSpeed = Integer.parseInt(prefs.getString("maximumSpeed", "100"));
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
 
@@ -425,11 +424,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(new LatLng(lat, lng));
 
         myMarker = myGoogleMap.addMarker(options);
-
         myCircle = drawCircle(new LatLng(lat, lng));
-
         if (calendar != null) calendar = Calendar.getInstance();
-        stop = false;
+
 
     }
 
@@ -545,9 +542,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         /* TODO
         Change priority to balanced
          */
-        myLocationRequest.setInterval(locationUpdateInterval);
-        myLocationRequest.setFastestInterval(locationUpdateInterval);
-
+        //myLocationRequest.setInterval(locationUpdateInterval);
+        //myLocationRequest.setFastestInterval(locationUpdateInterval);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
@@ -576,9 +572,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void detectRadius(Location location) {
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        double distance = haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude);
-        System.out.print("distance:" + distance);
-        if (myMarker != null && !stop) {
+        if (myMarker != null) {
+            double distance = haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude);
+            Log.d("distance:", String.valueOf(distance));
+            Log.d("maxSpeed:", String.valueOf(maximumSpeed));
             if (distance <= myCircle.getRadius() / 1000) {
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
@@ -589,10 +586,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 destinationReached = true;
             } else {
                 // Set interval for location
-                long interval = (long) (maximumSpeed * distance / 3.6);
+                long interval = (long) (3600_000 * distance / maximumSpeed);
+                if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
                 myLocationRequest.setInterval(interval); //
-                System.out.print("myLocation.setInterval set to:" + interval);
-
+                myLocationRequest.setFastestInterval(interval);
+                Log.d("Interval:", String.valueOf(myLocationRequest.getInterval()));
+                Log.d("fastest Interval:", String.valueOf(myLocationRequest.getFastestInterval()));
             }
         }
     }
@@ -601,7 +600,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         boolean is = false;
-        if (myMarker != null && !stop) {
+        if (myMarker != null) {
             is = (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1;
         }
         return is;
@@ -636,14 +635,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
         // Called every time user changes location
-        stop = false;
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
+            return;
         }
+        myLocationRequest = LocationRequest.create();
+        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         detectRadius(location);
+        //myLocationRequest.setInterval(locationUpdateInterval);
+        //myLocationRequest.setFastestInterval(locationUpdateInterval);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+
+        /* TODO should analyse and remove this
         if (detectInterval(location)) {
             if (myLocationRequest.getInterval() != 1000) {
-
                 myLocationRequest.setInterval(1000);
                 myLocationRequest.setFastestInterval(1000 / 2);
                 myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -665,6 +673,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
             }
         }
+        */
 
     }
 
@@ -790,25 +799,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void stopTrackingBut(View view) {
-
         Button button = (Button) findViewById(R.id.button4);
-
         if (flag) {
-            button.setText("Start");
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
-
+            LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
             if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
-            else return;
+            button.setText("Start");
+            Log.d("Tracking", "paused");
         } else {
-            button.setText("Pause");
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
-
             if (!myGoogleApiClient.isConnected()) myGoogleApiClient.connect();
-            else return;
+            button.setText("Pause");
+            Log.d("Tracking", "started");
         }
 
     }
