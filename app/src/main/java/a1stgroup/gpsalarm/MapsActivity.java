@@ -241,20 +241,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onMarkerDragEnd(Marker marker) {
 
                     LatLng coordinates = marker.getPosition();
-//  sdafas                  if(coordinates.)
                     myCircle = drawCircle(coordinates);
-
-                   /* TODO:
-                    Useful but unstable feature of passing location information to InfoWindow on DragEnd
-                   List<Address> list = null;
-
-                    try {
-                        list = gc.getFromLocation(coordinates.latitude, coordinates.longitude, 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Address add = list.get(0);*/
 
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
@@ -270,27 +257,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (myMarker != null) {
                         myGoogleMap.clear();
                     }
-
-                    /* TODO:
-                    Useful but unstable feature of passing location information to InfoWindow on Long Click
-
-                    Geocoder gc = new Geocoder(MapsActivity.this);
-                    List<Address> list = null;
-                    try {
-                        list = gc.getFromLocation(point.latitude, point.longitude, 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Address add = list.get(0);*/
-
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
-
                     setMarker(roundedLatitude, roundedLongitude);
-                    /* TODO
-                    * Put some location information into the marker
-                    * */
+
                 }
             });
 
@@ -310,14 +280,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
 
-
                     LatLng coordinates = marker.getPosition();
 
                     tvLocality.setText(marker.getTitle());
                     tvLat.setText("Latitude: " + coordinates.latitude);
                     tvLng.setText("Longitude: " + coordinates.longitude);
                     tvSnippet.setText(marker.getSnippet());
-
 
                     return v;
                 }
@@ -539,11 +507,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        /* TODO
-        Change priority to balanced
-         */
-        //myLocationRequest.setInterval(locationUpdateInterval);
-        //myLocationRequest.setFastestInterval(locationUpdateInterval);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
