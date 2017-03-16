@@ -359,7 +359,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleMap.moveCamera(camUpdate);
     }
 
-    public void geoLocate() {
+    public void geoLocate(View view) {
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
         checkAndConnect();
 
@@ -701,7 +701,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-    public void stopTrackingBut() {
+    public void stopTrackingBut(View view) {
+
         Button button = (Button) findViewById(R.id.button4);
         if (flag) {
             button.setBackgroundColor(Color.RED);
