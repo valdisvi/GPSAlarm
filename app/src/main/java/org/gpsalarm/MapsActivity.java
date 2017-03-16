@@ -127,7 +127,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
             initSound();
 
-
             SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
@@ -188,7 +187,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void initMap() {
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
-
     }
 
     public boolean googleServicesAvailable() {
@@ -416,14 +414,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         getMenuInflater().inflate(R.menu.menu, menu);
         return super.onCreateOptionsMenu(menu);         // More on this line: http://stackoverflow.com/questions/10303898/oncreateoptionsmenu-calling-super
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
                 Intent j = new Intent(this, MyPreferencesActivity.class);
@@ -499,16 +495,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnectionSuspended(int i) {
-
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
     }
 
     double haversine(double lat1, double lon1, double lat2, double lon2) {
-
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
         return results[0] / 1000;
