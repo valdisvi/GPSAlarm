@@ -68,8 +68,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
@@ -391,7 +389,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(new LatLng(lat, lng));
         myMarker = myGoogleMap.addMarker(options);
         myCircle = drawCircle(new LatLng(lat, lng));
-        prepareLocationRequest();
+        startLocationRequest();
 
     }
 
@@ -526,13 +524,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d("distance:", String.valueOf(distance));
             Log.d("maxSpeed:", String.valueOf(maximumSpeed));
             if (distance <= myCircle.getRadius() / 1000) {
+                stopLocationRequest();
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
                 mySound.start();
-                if (!destinationReached) {
+                if (!destinationReached)
                     showPopup();
-                }
                 destinationReached = true;
+                Log.d("Destination", "reached");
             } else {
                 // Set interval for location
                 long interval = (long) (3600_000 * distance / maximumSpeed);
@@ -578,42 +577,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
             return;
         }
-        // myLocationRequest = LocationRequest.create();
-        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         detectRadius(location);
-        //myLocationRequest.setInterval(locationUpdateInterval);
-        //myLocationRequest.setFastestInterval(locationUpdateInterval);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-        }
-        LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-
-        /* TODO should analyse and remove this
-        if (detectInterval(location)) {
-            if (myLocationRequest.getInterval() != 1000) {
-                myLocationRequest.setInterval(1000);
-                myLocationRequest.setFastestInterval(1000 / 2);
-                myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-                }
-                LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-            }
-        } else {
-            if (myLocationRequest.getInterval() != locationUpdateInterval) {
-                myLocationRequest = LocationRequest.create();
-                myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-                myLocationRequest.setInterval(locationUpdateInterval);
-                myLocationRequest.setFastestInterval(locationUpdateInterval);
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-                }
-                LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
-            }
-        }
-        */
-
     }
 
     public void changeMapType(String type) {
@@ -743,7 +707,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
-            prepareLocationRequest();
+            stopLocationRequest();
             LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
             if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
             button.setText("Start");
@@ -752,18 +716,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
-            if (!myGoogleApiClient.isConnected()) myGoogleApiClient.connect();
+            startLocationRequest();
             button.setText("Pause");
             Log.d("Tracking", "started");
         }
 
     }
 
-    void prepareLocationRequest() {
+    void startLocationRequest() {
         myLocationRequest = LocationRequest.create();
+        if (!myGoogleApiClient.isConnected())
+            myGoogleApiClient.connect();
         myLocationRequest.setFastestInterval(1);
         myLocationRequest.setFastestInterval(1);
-        Log.d("locationRequest","prepared");
+        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        Log.d("locationRequest", "started");
+    }
+
+    void stopLocationRequest() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
+        if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
+        Log.d("locationRequest", "stopped");
     }
 
     public void enableWiFi() {
