@@ -1,10 +1,12 @@
-package a1stgroup.gpsalarm;
+package org.gpsalarm;
 
 
 
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.AppCompatActivity;
+
+import org.gpsalarm.R;
 
 public class MyPreferencesActivity extends AppCompatActivity {
 

@@ -1,5 +1,5 @@
 
-package a1stgroup.gpsalarm;
+package org.gpsalarm;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -12,6 +12,8 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.gpsalarm.R;
 
 public class SplashScreen extends Activity {
 

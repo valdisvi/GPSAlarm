@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="a1stgroup.gpsalarm">
+    package="org.gpsalarm">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -15,12 +15,12 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" >
     </uses-permission>
     <permission
-        android:name="a1stgroup.gpsalarm.permission.MAPS_RECEIVE"
+        android:name="org.gpsalarm.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
 
 
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name="a1stgroup.gpsalarm.permission.MAPS_RECEIVE" />
+    <uses-permission android:name="org.gpsalarm.permission.MAPS_RECEIVE" />
     <uses-permission android:name="com.google.android.providers.gsf.permissions.READ_GSERVICES" />
 
     <uses-feature
@@ -36,7 +36,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".SplashScreen"
+            android:name="org.gpsalarm.SplashScreen"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,23 +45,23 @@
         </activity>
 
         <activity
-            android:name=".MyStartActivity"
+            android:name="org.gpsalarm.MyStartActivity"
             android:screenOrientation="portrait"
             android:label="@string/app_name">
         </activity>
 
         <activity
-            android:name=".MapsActivity"
-            android:parentActivityName=".MyStartActivity">
+            android:name="org.gpsalarm.MapsActivity"
+            android:parentActivityName="org.gpsalarm.MyStartActivity">
         </activity>
 
         <activity
-            android:name=".MyPreferencesActivity"
-            android:parentActivityName=".MapsActivity"
+            android:name="org.gpsalarm.MyPreferencesActivity"
+            android:parentActivityName="org.gpsalarm.MapsActivity"
             android:label="Settings"/>
         <activity
-            android:name=".MyHelpActivity"
-            android:parentActivityName=".MapsActivity"
+            android:name="org.gpsalarm.MyHelpActivity"
+            android:parentActivityName="org.gpsalarm.MapsActivity"
             android:label="Help"/>
 
         <meta-data
@@ -71,8 +71,8 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        <receiver android:name=".TrackerAlarmReceiver"/>
-        <receiver android:name=".MapBootReceiver" android:enabled="false">
+        <receiver android:name="org.gpsalarm.TrackerAlarmReceiver"/>
+        <receiver android:name="org.gpsalarm.MapBootReceiver" android:enabled="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
@@ -80,7 +80,7 @@
         <service android:name=".TrackerService"/>
         <service
             android:enabled="true"
-            android:name=".CloseService"
+            android:name="org.gpsalarm.CloseService"
             android:exported="false"
             android:stopWithTask="false" />
     </application>

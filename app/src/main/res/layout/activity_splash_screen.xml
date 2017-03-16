@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:background="@color/wallet_holo_blue_light"
-    tools:context="a1stgroup.gpsalarm.SplashScreen">
+    tools:context="org.gpsalarm.SplashScreen">
 
     <com.felipecsl.gifimageview.library.GifImageView
         android:id="@+id/gifImageView"

@@ -1,4 +1,4 @@
-package a1stgroup.gpsalarm;
+package org.gpsalarm;
 
 
 import android.content.BroadcastReceiver;

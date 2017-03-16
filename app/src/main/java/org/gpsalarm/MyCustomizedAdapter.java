@@ -1,4 +1,4 @@
-package a1stgroup.gpsalarm;
+package org.gpsalarm;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -9,6 +9,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+
+import org.gpsalarm.R;
 
 
 class MyCustomizedAdapter extends ArrayAdapter<MarkerData> {

@@ -1,4 +1,4 @@
-package a1stgroup.gpsalarm;
+package org.gpsalarm;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -68,6 +68,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.gpsalarm.R;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
@@ -701,8 +703,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
             stopLocationRequest();
-            LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
-            if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
             button.setText("Start");
             Log.d("Tracking", "paused");
         } else {
@@ -727,8 +727,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void stopLocationRequest() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
-        if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
+        if (myGoogleApiClient!=null && myGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
+            myGoogleApiClient.disconnect();
+        }
         Log.d("locationRequest", "stopped");
     }
 

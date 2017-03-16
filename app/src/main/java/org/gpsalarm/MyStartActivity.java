@@ -1,4 +1,4 @@
-package a1stgroup.gpsalarm;
+package org.gpsalarm;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -14,13 +14,11 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.concurrent.TimeUnit;
 
 
-import static a1stgroup.gpsalarm.MapsActivity.markerDataList;
+import org.gpsalarm.R;
 
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
@@ -34,14 +32,14 @@ public class MyStartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile");
+            MapsActivity.markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (markerDataList.size() == 0) {
+        if (MapsActivity.markerDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);
             startActivity(intent);
         } else {
@@ -49,7 +47,7 @@ public class MyStartActivity extends AppCompatActivity {
             final ArrayAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
             ListView listView = (ListView) findViewById(R.id.listView);
 
-            Collections.sort(markerDataList, new Comparator<MarkerData>() {
+            Collections.sort(MapsActivity.markerDataList, new Comparator<MarkerData>() {
 
             /* This comparator will sort MarkerData objects alphabetically. */
 
