@@ -92,7 +92,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
-    Calendar calendar = Calendar.getInstance();
     private boolean destinationReached = false;
     private PopupWindow pw;
     private LocationManager manager;
@@ -362,7 +361,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myGoogleMap.moveCamera(camUpdate);
     }
 
-    public void geoLocate(View view) {
+    public void geoLocate() {
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
         checkAndConnect();
 
@@ -390,11 +389,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .draggable(true)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
-
         myMarker = myGoogleMap.addMarker(options);
         myCircle = drawCircle(new LatLng(lat, lng));
-        if (calendar != null) calendar = Calendar.getInstance();
-
+        prepareLocationRequest();
 
     }
 
@@ -481,17 +478,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return;
                             }
                         }
-                        //Calendar calendar= Calendar.getInstance();
-                        if (calendar != null) {
-                            calendar = Calendar.getInstance();
-                        }
-                        Date currentDate = calendar.getTime();
-                        int year = currentDate.getYear();
-                        int month = calendar.get(Calendar.MONTH);
-                        int day = calendar.get(Calendar.DAY_OF_MONTH);
-                        Date enablingDate = new Date(year, month, day);
-                        Calendar calendarForSettingEnablingDate = Calendar.getInstance();
-                        calendarForSettingEnablingDate.setTime(enablingDate);
                         addMarkerDataToList(name);
                         myMarker.hideInfoWindow();
                     }
@@ -559,16 +545,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public boolean detectInterval(Location location) {
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        boolean is = false;
-        if (myMarker != null) {
-            is = (haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude) - (myCircle.getRadius() / 1000)) <= 1;
-        }
-        return is;
-    }
-
     private void showPopup() {
         addNotificationEnd();
         LayoutInflater inflater = (LayoutInflater) MapsActivity.this
@@ -602,7 +578,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
             return;
         }
-        myLocationRequest = LocationRequest.create();
+        // myLocationRequest = LocationRequest.create();
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         detectRadius(location);
         //myLocationRequest.setInterval(locationUpdateInterval);
@@ -761,12 +737,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-    public void stopTrackingBut(View view) {
+    public void stopTrackingBut() {
         Button button = (Button) findViewById(R.id.button4);
         if (flag) {
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
+            prepareLocationRequest();
             LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
             if (myGoogleApiClient.isConnected()) myGoogleApiClient.disconnect();
             button.setText("Start");
@@ -780,6 +757,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d("Tracking", "started");
         }
 
+    }
+
+    void prepareLocationRequest() {
+        myLocationRequest = LocationRequest.create();
+        myLocationRequest.setFastestInterval(1);
+        myLocationRequest.setFastestInterval(1);
+        Log.d("locationRequest","prepared");
     }
 
     public void enableWiFi() {

@@ -115,7 +115,7 @@ public class MyStartActivity extends AppCompatActivity {
         return false;
     }
 
-    public void toMap(View view) {
+    public void toMap() {
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }
