@@ -514,34 +514,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return results[0] / 1000;
     }
 
-    public void detectRadius(Location location) {
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        if (myMarker != null) {
-            double distance = haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude);
-            Log.d("distance:", String.valueOf(distance));
-            Log.d("maxSpeed:", String.valueOf(maximumSpeed));
-            if (distance <= myCircle.getRadius() / 1000) {
-                stopLocationRequest();
-                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
-                mySound.start();
-                if (!destinationReached)
-                    showPopup();
-                destinationReached = true;
-                Log.d("Destination", "reached");
-            } else {
-                // Set interval for location
-                long interval = (long) (3600_000 * distance / maximumSpeed);
-                if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-                myLocationRequest.setInterval(interval); //
-                myLocationRequest.setFastestInterval(interval);
-                Log.d("Interval:", String.valueOf(myLocationRequest.getInterval()));
-                Log.d("fastest Interval:", String.valueOf(myLocationRequest.getFastestInterval()));
-            }
-        }
-    }
-
     private void showPopup() {
         addNotificationEnd();
         LayoutInflater inflater = (LayoutInflater) MapsActivity.this
@@ -573,9 +545,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Called every time user changes location
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
+            Log.e("onLocationChanged", "Can't get current location");
             return;
         }
-        detectRadius(location);
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        if (myMarker != null) {
+            double distance = haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude);
+            Log.d("distance:", String.valueOf(distance));
+            Log.d("maxSpeed:", String.valueOf(maximumSpeed));
+            // Check if reached destination
+            if (distance <= myCircle.getRadius() / 1000) {
+                stopLocationRequest();
+                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                v.vibrate(500);
+                mySound.start();
+                if (!destinationReached)
+                    showPopup();
+                destinationReached = true;
+                Log.d("Destination", "reached");
+            } else {
+                // Else set interval for location depending on distance
+                long interval = (long) (3600_000 * distance / maximumSpeed);
+                if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
+                myLocationRequest.setInterval(interval); //
+                myLocationRequest.setFastestInterval(interval);
+                Log.d("Interval:", String.valueOf(myLocationRequest.getInterval()));
+                Log.d("fastest Interval:", String.valueOf(myLocationRequest.getFastestInterval()));
+            }
+        }
     }
 
     public void changeMapType(String type) {
@@ -723,15 +721,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest.setFastestInterval(1);
         myLocationRequest.setFastestInterval(1);
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        Log.d("locationRequest", "started");
+        Log.d("startLocationRequest", "started successfully");
     }
 
     void stopLocationRequest() {
-        if (myGoogleApiClient!=null && myGoogleApiClient.isConnected()) {
+        if (myGoogleApiClient != null && myGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
             myGoogleApiClient.disconnect();
         }
-        Log.d("locationRequest", "stopped");
+        Log.d("stopLocationRequest", "stopped successfully");
     }
 
     public void enableWiFi() {
