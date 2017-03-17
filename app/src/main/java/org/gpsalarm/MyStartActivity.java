@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -116,6 +118,29 @@ public class MyStartActivity extends AppCompatActivity {
     public void toMap(View view) {
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);         // More on this line: http://stackoverflow.com/questions/10303898/oncreateoptionsmenu-calling-super
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.menuItemSettings:
+                Intent j = new Intent(this, MyPreferencesActivity.class);
+                startActivity(j);
+                return true;
+            case R.id.menuItemHelp:
+                Intent k = new Intent(this, MyHelpActivity.class);
+                startActivity(k);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
 }
