@@ -69,8 +69,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.gpsalarm.R;
-
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
@@ -91,14 +89,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
-    private boolean destinationReached = false;
+    private boolean userNotified = false;
     private PopupWindow pw;
     private LocationManager manager;
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
             mySound.pause();
             removeEverything();
-            destinationReached = false;
+            userNotified = false;
             pw.dismiss();
         }
     };
@@ -524,7 +522,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onDismiss() {
                 mySound.pause();
                 removeEverything();
-                destinationReached = false;
+                userNotified = false;
                 pw.dismiss();
             }
         });
@@ -549,13 +547,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d("maxSpeed:", String.valueOf(maximumSpeed));
             // Check if reached destination
             if (distance <= myCircle.getRadius() / 1000) {
-                stopLocationRequest();
-                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
-                mySound.start();
-                if (!destinationReached)
+                if (!userNotified) {
+                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                    v.vibrate(500);
+                    mySound.start();
                     showPopup();
-                destinationReached = true;
+                    userNotified = true;
+                    Log.d("user","notified");
+                }
+                stopLocationRequest();
                 Log.d("Destination", "reached");
             } else {
                 // Else set interval for location depending on distance
@@ -669,9 +669,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Dobavlenij kod!!!   14.02.2017
 
     private void buildAlertMessageNoWifi() {
+        Log.d("buildAlertMessageNoWifi","started");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
-                .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         enableWiFi();
@@ -714,6 +714,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         myLocationRequest.setFastestInterval(1);
         myLocationRequest.setFastestInterval(1);
         myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        userNotified = false;
         Log.d("startLocationRequest", "started successfully");
     }
 
