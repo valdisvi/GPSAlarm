@@ -111,9 +111,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent activityIntent = new Intent(this, SplashScreen.class);
         startService(activityIntent);
 
-        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
-
+        checkGPS();
 
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
@@ -354,7 +352,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(View view) {
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
+        checkGPS();
         checkAndConnect();
 
         if (addressName != null) {
@@ -370,7 +368,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(double lat, double lng) {
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
+        checkGPS();
         checkAndConnect();
 
         if (myMarker != null) {                                      // If marker has a reference, remove it.
@@ -687,7 +685,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void stopTrackingBut(View view) {
-
         Button button = (Button) findViewById(R.id.button4);
         if (flag) {
             button.setBackgroundColor(Color.RED);
@@ -704,10 +701,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setText("Pause");
             Log.d("Tracking", "started");
         }
-
     }
 
     void startLocationRequest() {
+        checkGPS();
         myLocationRequest = LocationRequest.create();
         if (!myGoogleApiClient.isConnected())
             myGoogleApiClient.connect();
@@ -731,6 +728,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         wifiManager.setWifiEnabled(true);
         startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
         Toast.makeText(getApplicationContext(), "Wi-fi connecting..", Toast.LENGTH_LONG).show();
+    }
+
+    private void checkGPS () {
+        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
     }
 
     public void checkAndConnect() {
