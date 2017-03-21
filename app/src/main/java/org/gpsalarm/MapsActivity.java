@@ -115,12 +115,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         handler = new Handler();
         context = this;
 
-
-        Intent serviceIntent = new Intent(this, CloseService.class);
-        startService(serviceIntent);
-        Intent activityIntent = new Intent(this, SplashScreen.class);
-        startService(activityIntent);
-
         // Manage alerts
         alarm = new TrackerAlarmReceiver();
 
