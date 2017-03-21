@@ -71,14 +71,6 @@
 
         <receiver android:name="org.gpsalarm.TrackerAlarmReceiver" />
 
-        <!--
-                <service android:name=".TrackerService" />
-                <service
-                    android:name="org.gpsalarm.CloseService"
-                    android:enabled="true"
-                    android:exported="false"
-                    android:stopWithTask="false" />
-                        -->
     </application>
 
 </manifest>
