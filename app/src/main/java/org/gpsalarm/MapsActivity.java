@@ -66,16 +66,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import android.os.Handler;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnInfoWindowClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
     //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     static String ringtonePath;
     static int maximumSpeed;
+    static long interval;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
@@ -84,7 +87,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     int alarmRadius;    // Used by markers. Can now be set through preferences.
     MediaPlayer mySound;
     LocationRequest myLocationRequest;  // Global variable for requesting location
-    TrackerAlarmReceiver alarm = new TrackerAlarmReceiver();
+    LocationListener locationListener;
+    TrackerAlarmReceiver alarm;
     Button closePopUp;
     WifiManager wifiManager;
     LatLng addressGeo;
@@ -92,6 +96,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean userNotified = false;
     private PopupWindow pw;
     private LocationManager manager;
+
+    Handler handler;
+    static Context context;
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
             mySound.pause();
@@ -105,11 +112,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        handler = new Handler();
+        context = this;
+
 
         Intent serviceIntent = new Intent(this, CloseService.class);
         startService(serviceIntent);
         Intent activityIntent = new Intent(this, SplashScreen.class);
         startService(activityIntent);
+
+        // Manage alerts
+        alarm = new TrackerAlarmReceiver();
 
         checkGPS();
 
@@ -142,8 +155,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
 
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
+            // FIXME next line probably unnecessary
+            // Intent mapIntent = new Intent(this, TrackerAlarmReceiver.class);
 
-            alarm.setAlarm(MapsActivity.this);
+            alarm.setAlarm(context);
 
             try {
                 markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile"); // Retrieve the list from internal storage
@@ -157,7 +172,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         }
-        checkAndConnect();
+        //checkAndConnect();
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -180,9 +195,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         addNotificationAppRunning();
     }
 
+    // Timed background thread
+    private Runnable runnableCode = new Runnable() {
+        @Override
+        public void run() {
+            while (!userNotified) {
+                startLocationRequest();
+                handler.postDelayed(runnableCode, interval); // prepare next call
+                Log.d("run()", "executed. interval:" + interval);
+            }
+        }
+    };
+
+
     private void initMap() {
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                myOnLocationChanged(location);
+            }
+        };
     }
 
     public boolean googleServicesAvailable() {
@@ -353,7 +387,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void geoLocate(View view) {
         checkGPS();
-        checkAndConnect();
+        //checkAndConnect();
 
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -478,15 +512,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-
-        myLocationRequest = LocationRequest.create();
-        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, locationListener);
         }
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, this);
     }
 
     @Override
@@ -529,8 +557,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         closePopUp.setOnClickListener(cancel_button_click_listener);
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
+    public void myOnLocationChanged(Location location) {
         // Called every time user changes location
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
@@ -551,18 +578,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mySound.start();
                     showPopup();
                     userNotified = true;
-                    Log.d("user","notified");
+                    Log.d("user", "notified");
+                } else {// stop tracking, when user is notified
+                    stopLocationRequest();
+                    Log.d("LocationRequest", "stopped");
                 }
-                stopLocationRequest();
                 Log.d("Destination", "reached");
             } else {
                 // Else set interval for location depending on distance
-                long interval = (long) (3600_000 * distance / maximumSpeed);
-                if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-                myLocationRequest.setInterval(interval); //
-                myLocationRequest.setFastestInterval(interval);
-                Log.d("Interval:", String.valueOf(myLocationRequest.getInterval()));
-                Log.d("fastest Interval:", String.valueOf(myLocationRequest.getFastestInterval()));
+                interval = (long) (3600_000 * distance / maximumSpeed);
+                Log.d("onCange", "interval:" + interval);
+                stopLocationRequest();
             }
         }
     }
@@ -667,7 +693,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Dobavlenij kod!!!   14.02.2017
 
     private void buildAlertMessageNoWifi() {
-        Log.d("buildAlertMessageNoWifi","started");
+        Log.d("buildAlertMessageNoWifi", "started");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -705,19 +731,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     void startLocationRequest() {
         checkGPS();
-        myLocationRequest = LocationRequest.create();
-        if (!myGoogleApiClient.isConnected())
-            myGoogleApiClient.connect();
-        myLocationRequest.setFastestInterval(1);
-        myLocationRequest.setFastestInterval(1);
-        myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        myLocationRequest = new LocationRequest();
+        //myLocationRequest = LocationRequest.create();
+        if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
+        //myLocationRequest = new LocationRequest();
+        if (interval > 300_000) // more than 5 minutes
+            myLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+        if (interval < 60_000) // less than minute
+            myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        myLocationRequest.setInterval(interval); //
+        myLocationRequest.setFastestInterval(interval);
+        Log.d("startLocationRequest", "interval:" + String.valueOf(myLocationRequest.getInterval()));
+        Log.d("startLocationRequest", "fastest interval:" + String.valueOf(myLocationRequest.getFastestInterval()));
         userNotified = false;
-        Log.d("startLocationRequest", "started successfully");
+        Log.d("startLocationRequest", "completed successfully");
     }
 
     void stopLocationRequest() {
         if (myGoogleApiClient != null && myGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, this);
+            LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, locationListener);
             myGoogleApiClient.disconnect();
         }
         Log.d("stopLocationRequest", "stopped successfully");
@@ -730,7 +762,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Toast.makeText(getApplicationContext(), "Wi-fi connecting..", Toast.LENGTH_LONG).show();
     }
 
-    private void checkGPS () {
+    private void checkGPS() {
         manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
     }

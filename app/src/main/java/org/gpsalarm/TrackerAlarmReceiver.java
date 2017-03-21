@@ -2,38 +2,58 @@ package org.gpsalarm;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.content.WakefulBroadcastReceiver;
+import android.os.Bundle;
+import android.os.PowerManager;
+import android.util.Log;
+import android.widget.Toast;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-/**
- * Created by student on 16.9.11.
- */
-
-public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
-    private AlarmManager alarmManager;
-    private PendingIntent alarmIntent;
+public class TrackerAlarmReceiver extends BroadcastReceiver {
+    final public static String ONE_TIME = "onetime";
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        ComponentName comp = new ComponentName(context.getPackageName(),TrackerService.class.getName());
-        Intent service =  new Intent(context,TrackerService.class);
-        startWakefulService(context, intent.setComponent(comp));
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "YOUR TAG");
+        //Acquire the lock
+        wl.acquire();
+
+        //You can do the processing here update the widget/remote views.
+        Bundle extras = intent.getExtras();
+        StringBuilder msgStr = new StringBuilder();
+
+        if (extras != null && extras.getBoolean(ONE_TIME, Boolean.FALSE)) {
+            msgStr.append("One time Timer : ");
+        }
+        Format formatter = new SimpleDateFormat("HH:mm:ss");
+        msgStr.append(formatter.format(new Date()));
+
+        Toast.makeText(context, msgStr, Toast.LENGTH_LONG).show();
+        Log.d("onReceive", msgStr.toString());
+        //Release the lock
+        wl.release();
+
     }
 
     public void setAlarm(Context context) {
-        alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context,TrackerService.class);
-        alarmIntent = PendingIntent.getBroadcast(context,0,intent,0);
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, TrackerAlarmReceiver.class);
+        intent.putExtra(ONE_TIME, Boolean.FALSE);
+        PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), MapsActivity.interval, pi);
+        Log.d("setAlarm", "set to:" + MapsActivity.interval);
+    }
 
-        ComponentName receiver = new ComponentName(context, MapBootReceiver.class);
-        PackageManager pm = context.getPackageManager();
-
-        pm.setComponentEnabledSetting(receiver,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP);
+    public void cancelAlarm(Context context) {
+        Intent intent = new Intent(context, TrackerAlarmReceiver.class);
+        PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.cancel(sender);
     }
 
 }

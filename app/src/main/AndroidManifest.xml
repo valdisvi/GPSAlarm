@@ -7,19 +7,18 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" >
-    </uses-permission>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" >
-    </uses-permission>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" >
-    </uses-permission>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <permission
         android:name="org.gpsalarm.permission.MAPS_RECEIVE"
         android:protectionLevel="signature" />
 
 
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="org.gpsalarm.permission.MAPS_RECEIVE" />
     <uses-permission android:name="com.google.android.providers.gsf.permissions.READ_GSERVICES" />
 
@@ -46,43 +45,47 @@
 
         <activity
             android:name="org.gpsalarm.MyStartActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/app_name">
-        </activity>
+            android:label="@string/app_name"
+            android:screenOrientation="portrait" />
 
         <activity
             android:name="org.gpsalarm.MapsActivity"
-            android:parentActivityName="org.gpsalarm.MyStartActivity">
-        </activity>
+            android:parentActivityName="org.gpsalarm.MyStartActivity" />
 
         <activity
             android:name="org.gpsalarm.MyPreferencesActivity"
-            android:parentActivityName="org.gpsalarm.MapsActivity"
-            android:label="Settings"/>
+            android:label="Settings"
+            android:parentActivityName="org.gpsalarm.MapsActivity" />
         <activity
             android:name="org.gpsalarm.MyHelpActivity"
-            android:parentActivityName="org.gpsalarm.MapsActivity"
-            android:label="Help"/>
+            android:label="Help"
+            android:parentActivityName="org.gpsalarm.MapsActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDSmhPqzao0sYyo5eiBCTEf1YY3ML9NTmw" />
+            android:value="AIzaSyCbsL3lrU-8yCmTRTgvtl___WD5rkplkcM" />
 
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        <receiver android:name="org.gpsalarm.TrackerAlarmReceiver"/>
-        <receiver android:name="org.gpsalarm.MapBootReceiver" android:enabled="false">
+
+        <receiver android:name="org.gpsalarm.TrackerAlarmReceiver" />
+
+        <receiver
+            android:name="org.gpsalarm.MapBootReceiver"
+            android:enabled="false">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <service android:name=".TrackerService"/>
-        <service
-            android:enabled="true"
-            android:name="org.gpsalarm.CloseService"
-            android:exported="false"
-            android:stopWithTask="false" />
+        <!--
+                <service android:name=".TrackerService" />
+                <service
+                    android:name="org.gpsalarm.CloseService"
+                    android:enabled="true"
+                    android:exported="false"
+                    android:stopWithTask="false" />
+                        -->
     </application>
 
 </manifest>

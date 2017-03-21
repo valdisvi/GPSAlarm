@@ -16,6 +16,7 @@ import org.gpsalarm.R;
 
 
 class TrackerService extends IntentService {
+    MapsActivity mapsActivity;
     NotificationManager mapNotificationManager;
 
 
@@ -25,6 +26,7 @@ class TrackerService extends IntentService {
     }
 
     protected void onHandleIntent(Intent intent) {
+            mapsActivity.startLocationRequest();
             sendNotification("Tracking");
     }
 
