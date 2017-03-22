@@ -390,9 +390,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(new LatLng(lat, lng));
         marker = googleMap.addMarker(options);
         circle = drawCircle(new LatLng(lat, lng));
-        alarm.setAlarm(this);
         startLocationRequest();
-
+        alarm.setAlarm(this);
     }
 
     private Circle drawCircle(LatLng latLng) {
@@ -655,6 +654,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void stopTrackingBut(@SuppressWarnings("unused") View view) {
         Button button = (Button) findViewById(R.id.button4);
+        // Reinitialize alarm time
+        alarm = new TrackerAlarmReceiver();
         if (flag) {
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
@@ -667,8 +668,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
-            alarm.setAlarm(this);
             startLocationRequest();
+            alarm.setAlarm(this);
             button.setText("Pause");
             Log.d("Tracking", "started");
         }
@@ -690,7 +691,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("startLocationRequest", "interval:" + String.valueOf(myLocationRequest.getInterval()));
         Log.d("startLocationRequest", "fastest interval:" + String.valueOf(myLocationRequest.getFastestInterval()));
         userNotified = false;
-        //alarm.setAlarm(context);
         Log.d("startLocationRequest", "completed successfully");
     }
 
@@ -714,7 +714,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void checkGPS() {
         Log.d("checkGPS", "");
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            buildAlertMessageNoGps();
     }
 
     public void checkAndConnect() {
@@ -799,6 +800,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     showPopup();
                     userNotified = true;
                     alarm.cancelAlarm(this);
+                    stopLocationRequest();
                     notificationManager.cancel(NOTIFICATION_ID);
                     Log.d("user", "notified");
                 } else {// stop tracking, when user is notified
@@ -807,10 +809,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
                 Log.d("Destination", "reached");
             } else {
-                // Else set interval for location depending on distance
+                // Else set interval for location, depending on distance
                 interval = (long) (3600_000 * distance / maximumSpeed);
                 Log.d("onCange", "interval:" + interval);
-                //stopLocationRequest();
+                // Stop location requests to save battery
+                stopLocationRequest();
+                // Reset alarm time
+                alarm.setAlarm(this);
             }
         }
     }
