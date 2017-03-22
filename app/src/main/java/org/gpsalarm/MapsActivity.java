@@ -76,10 +76,14 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
     //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
+    private static final int NOTIFICATION_ID = 899068621;
     static String ringtonePath;
     static int maximumSpeed;
     static long interval;
+    static Context context;
+    static MapsActivity mapsActivity;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
+    NotificationManager notificationManager;
     GoogleMap myGoogleMap;
     GoogleApiClient myGoogleApiClient;
     Marker myMarker;    // Separate Marker object to allow operations with it.
@@ -97,8 +101,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private PopupWindow pw;
     private LocationManager manager;
 
+
     Handler handler;
-    static Context context;
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
             mySound.pause();
@@ -112,10 +116,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        handler = new Handler();
         context = this;
+        mapsActivity = this;
 
-        // Manage alerts
+        // Manage wake up alerts
         alarm = new TrackerAlarmReceiver();
 
         checkGPS();
@@ -149,10 +153,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             };
 
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
-            // FIXME next line probably unnecessary
-            // Intent mapIntent = new Intent(this, TrackerAlarmReceiver.class);
-
-            alarm.setAlarm(context);
 
             try {
                 markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile"); // Retrieve the list from internal storage
@@ -188,19 +188,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
         addNotificationAppRunning();
     }
-
-    // Timed background thread
-    private Runnable runnableCode = new Runnable() {
-        @Override
-        public void run() {
-            while (!userNotified) {
-                startLocationRequest();
-                handler.postDelayed(runnableCode, interval); // prepare next call
-                Log.d("run()", "executed. interval:" + interval);
-            }
-        }
-    };
-
 
     private void initMap() {
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
@@ -381,7 +368,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void geoLocate(View view) {
         checkGPS();
-        //checkAndConnect();
 
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -572,6 +558,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mySound.start();
                     showPopup();
                     userNotified = true;
+                    alarm.cancelAlarm(context);
+                    notificationManager.cancel(NOTIFICATION_ID);
                     Log.d("user", "notified");
                 } else {// stop tracking, when user is notified
                     stopLocationRequest();
@@ -710,6 +698,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
+            alarm.cancelAlarm(context);
             stopLocationRequest();
             button.setText("Start");
             Log.d("Tracking", "paused");
@@ -717,6 +706,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
+            alarm.setAlarm(context);
             startLocationRequest();
             button.setText("Pause");
             Log.d("Tracking", "started");
@@ -738,6 +728,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("startLocationRequest", "interval:" + String.valueOf(myLocationRequest.getInterval()));
         Log.d("startLocationRequest", "fastest interval:" + String.valueOf(myLocationRequest.getFastestInterval()));
         userNotified = false;
+        //alarm.setAlarm(context);
         Log.d("startLocationRequest", "completed successfully");
     }
 
@@ -790,9 +781,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder.setContentIntent(pendingIntent);
-        NotificationManager mNotificationManager =
+        notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(1, mBuilder.build());
+        notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
     public void addNotificationEnd() {
@@ -816,5 +807,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(2, mBuilder.build());
+    }
+
+    static MapsActivity getMapsActivity() {
+        return mapsActivity;
     }
 }
