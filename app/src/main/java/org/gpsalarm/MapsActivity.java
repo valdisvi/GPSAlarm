@@ -87,7 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     Circle circle;
     int alarmRadius;    // Used by markers. Can now be set through preferences.
     MediaPlayer mediaPlayer;
-    LocationRequest myLocationRequest;  // variable for requesting location
+    LocationRequest locationRequest;  // variable for requesting location
     TrackerAlarmReceiver alarm;
     Button closePopUp;
     WifiManager wifiManager;
@@ -489,8 +489,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnected(@Nullable Bundle bundle) {
         Log.d("onConnected", "");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if (myLocationRequest != null)
-                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, myLocationRequest, this);
+            if (locationRequest != null)
+                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         }
     }
 
@@ -679,18 +679,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     void startLocationRequest() {
         Log.d("startLocationRequest", "");
         checkGPS();
-        myLocationRequest = new LocationRequest();
-        //myLocationRequest = LocationRequest.create();
+        locationRequest = new LocationRequest();
+        //locationRequest = LocationRequest.create();
         if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-        //myLocationRequest = new LocationRequest();
+        //locationRequest = new LocationRequest();
         if (interval > 300_000) // more than 5 minutes
-            myLocationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
+            locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
         if (interval < 60_000) // less than minute
-            myLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        myLocationRequest.setInterval(interval); //
-        myLocationRequest.setFastestInterval(interval);
-        Log.d("startLocationRequest", "interval:" + String.valueOf(myLocationRequest.getInterval()));
-        Log.d("startLocationRequest", "fastest interval:" + String.valueOf(myLocationRequest.getFastestInterval()));
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(interval); //
+        locationRequest.setFastestInterval(interval);
+        Log.d("startLocationRequest", "interval:" + String.valueOf(locationRequest.getInterval()));
+        Log.d("startLocationRequest", "fastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
         userNotified = false;
         Log.d("startLocationRequest", "completed successfully");
     }
