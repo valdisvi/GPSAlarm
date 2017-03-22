@@ -38,7 +38,7 @@ public class SplashScreen extends Activity {
 
         }
 
-        // wait for 3 seconds and start Maps Activity
+        // wait a little and start Maps Activity
 
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -46,7 +46,7 @@ public class SplashScreen extends Activity {
                 SplashScreen.this.startActivity(new Intent(SplashScreen.this, MyStartActivity.class));
                 SplashScreen.this.finish();
             }
-        }, 2500); // 3 seconds
+        }, 500);
 
 
     }
