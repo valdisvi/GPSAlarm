@@ -61,9 +61,10 @@
             android:label="Help"
             android:parentActivityName="org.gpsalarm.MapsActivity" />
 
+        <!-- TODO should use new key AIzaSyCbsL3lrU-8yCmTRTgvtl___WD5rkplkcM here -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCbsL3lrU-8yCmTRTgvtl___WD5rkplkcM" />
+            android:value="AIzaSyDSmhPqzao0sYyo5eiBCTEf1YY3ML9NTmw" />
 
         <meta-data
             android:name="com.google.android.gms.version"
