@@ -810,7 +810,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Else set interval for location depending on distance
                 interval = (long) (3600_000 * distance / maximumSpeed);
                 Log.d("onCange", "interval:" + interval);
-                stopLocationRequest();
+                //stopLocationRequest();
             }
         }
     }

@@ -45,7 +45,7 @@
             android:layout_below="@+id/editText"
             android:layout_toRightOf="@+id/button"
             android:layout_toEndOf="@+id/button"
-            android:background="@android:color/holo_green_light" android:state_pressed="true"
+            android:background="@android:color/holo_red_light" android:state_pressed="true"
             android:onClick="stopTrackingBut"
             android:layout_weight="0.5"
             android:layout_width="0dp" />
