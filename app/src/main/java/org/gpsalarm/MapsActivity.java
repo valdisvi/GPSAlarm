@@ -489,7 +489,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnected(@Nullable Bundle bundle) {
         Log.d("onConnected", "");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, myLocationRequest, this);
+            if (myLocationRequest != null)
+                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, myLocationRequest, this);
         }
     }
 
@@ -793,6 +794,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d("maxSpeed:", String.valueOf(maximumSpeed));
             // Check if reached destination
             if (distance <= circle.getRadius() / 1000) {
+                stopLocationRequest();
                 if (!userNotified) {
                     Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     v.vibrate(500);
@@ -800,22 +802,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     showPopup();
                     userNotified = true;
                     alarm.cancelAlarm(this);
-                    stopLocationRequest();
                     notificationManager.cancel(NOTIFICATION_ID);
                     Log.d("user", "notified");
-                } else {// stop tracking, when user is notified
-                    stopLocationRequest();
-                    Log.d("LocationRequest", "stopped");
                 }
-                Log.d("Destination", "reached");
+                Log.d("onLocationChanged", "destination reached");
             } else {
                 // Else set interval for location, depending on distance
                 interval = (long) (3600_000 * distance / maximumSpeed);
                 Log.d("onCange", "interval:" + interval);
-                // Stop location requests to save battery
-                stopLocationRequest();
-                // Reset alarm time
-                alarm.setAlarm(this);
             }
         }
     }

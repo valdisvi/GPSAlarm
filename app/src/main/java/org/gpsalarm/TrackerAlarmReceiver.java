@@ -22,19 +22,19 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Format formatter = new SimpleDateFormat("HH:mm:ss");
         String msg = (formatter.format(new Date()));
-        Log.d("TrackerAlarmReceiver", "onReceive: " + msg);
-
+        Log.d("onReceive", "time: " + msg);
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
         //Acquire the lock
         wl.acquire();
-
+        // Start location requests
         MapsActivity.getMapsActivity().startLocationRequest();
-        Log.d("onReceive", "startLocationRequest called");
-
+        // Stop location requests to save battery
+        MapsActivity.getMapsActivity().stopLocationRequest();
+        // Reset alarm time
+        setAlarm(MapsActivity.getMapsActivity());
         //Release the lock
         wl.release();
-
     }
 
     public void setAlarm(Context context) {
@@ -47,7 +47,7 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
         Intent intent = new Intent(context, TrackerAlarmReceiver.class);
         intent.putExtra(ONE_TIME, Boolean.FALSE);
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
-        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), MapsActivity.interval, pi);
+        am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + MapsActivity.interval, MapsActivity.interval, pi);
         Log.d("TrackerAlarmReceiver", "alarm set to:" + MapsActivity.interval);
     }
 
