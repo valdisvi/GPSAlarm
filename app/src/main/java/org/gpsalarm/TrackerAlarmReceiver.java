@@ -9,27 +9,28 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
+
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TrackerAlarmReceiver extends BroadcastReceiver {
     final public static String ONE_TIME = "onetime";
+    MapsActivity mapsActivity;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Format formatter = new SimpleDateFormat("HH:mm:ss");
+        String msg = (formatter.format(new Date()));
+        Log.d("TrackerAlarmReceiver", "onReceive: " + msg);
+
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
         //Acquire the lock
         wl.acquire();
 
-        // Do updates
-        Format formatter = new SimpleDateFormat("HH:mm:ss");
-        String msg = (formatter.format(new Date()));
-        // FIXME this doesn't work
-        MapsActivity mapsActivity = MapsActivity.getMapsActivity();
-        mapsActivity.startLocationRequest();
-        Log.d("TrackerAlarmReceiver", "onReceive: " + msg);
+        MapsActivity.getMapsActivity().startLocationRequest();
+        Log.d("onReceive", "startLocationRequest called");
 
         //Release the lock
         wl.release();
@@ -37,6 +38,11 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
     }
 
     public void setAlarm(Context context) {
+        if (context instanceof MapsActivity) {
+            mapsActivity = (MapsActivity) context;
+            Log.d("setAlarm", "mapsActivity is set");
+        } else
+            Log.d("setAlarm", "mapsActivity == null");
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, TrackerAlarmReceiver.class);
         intent.putExtra(ONE_TIME, Boolean.FALSE);
@@ -46,12 +52,16 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
     }
 
     public void cancelAlarm(Context context) {
+        if (context instanceof MapsActivity) {
+            mapsActivity = (MapsActivity) context;
+            Log.d("cancelAlarm", "mapsActivity is set");
+        } else
+            Log.d("cancelAlarm", "mapsActivity == null");
         Intent intent = new Intent(context, TrackerAlarmReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
-        Log.d("TrackerAlarmReceiver","alarm canceled");
-;    }
-
+        Log.d("TrackerAlarmReceiver", "alarm canceled");
+    }
 
 }

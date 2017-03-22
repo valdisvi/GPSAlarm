@@ -66,58 +66,56 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import android.os.Handler;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
     private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     private static final int NOTIFICATION_ID = 899068621;
     static String ringtonePath;
     static int maximumSpeed;
-    static long interval;
+    static long interval = 1000; // set default (minimum) to 1s
     static Context context;
-    static MapsActivity mapsActivity;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     NotificationManager notificationManager;
-    GoogleMap myGoogleMap;
-    GoogleApiClient myGoogleApiClient;
-    Marker myMarker;    // Separate Marker object to allow operations with it.
-    Circle myCircle;
+    GoogleMap googleMap;
+    GoogleApiClient googleApiClient;
+    Marker marker;    // Separate Marker object to allow operations with it.
+    Circle circle;
     int alarmRadius;    // Used by markers. Can now be set through preferences.
-    MediaPlayer mySound;
-    LocationRequest myLocationRequest;  // Global variable for requesting location
-    LocationListener locationListener;
+    MediaPlayer mediaPlayer;
+    LocationRequest myLocationRequest;  // variable for requesting location
     TrackerAlarmReceiver alarm;
     Button closePopUp;
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
     private boolean userNotified = false;
-    private PopupWindow pw;
-    private LocationManager manager;
+    private PopupWindow popupWindow;
+    private LocationManager locationManager;
 
-
-    Handler handler;
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
-            mySound.pause();
+            mediaPlayer.pause();
             removeEverything();
             userNotified = false;
-            pw.dismiss();
+            popupWindow.dismiss();
         }
     };
     private boolean flag = true;
 
+    static MapsActivity getMapsActivity() {
+        return (MapsActivity) context;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("onCreate", "");
         super.onCreate(savedInstanceState);
         context = this;
-        mapsActivity = this;
 
         // Manage wake up alerts
         alarm = new TrackerAlarmReceiver();
@@ -190,14 +188,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initMap() {
+        Log.d("initMap", "");
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
-        locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-                myOnLocationChanged(location);
-            }
-        };
     }
 
     public boolean googleServicesAvailable() {
@@ -222,18 +215,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        myGoogleMap = googleMap;
+        this.googleMap = googleMap;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
-        if (myGoogleMap != null) {
+        if (this.googleMap != null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
             changeMapType(prefs.getString("mapType", "2"));
 
-            myGoogleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            this.googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
-                    if (myCircle != null) {
-                        myCircle.remove();
+                    if (circle != null) {
+                        circle.remove();
                     }
                 }
 
@@ -245,7 +238,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onMarkerDragEnd(Marker marker) {
 
                     LatLng coordinates = marker.getPosition();
-                    myCircle = drawCircle(coordinates);
+                    circle = drawCircle(coordinates);
 
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
@@ -255,11 +248,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
 
-            myGoogleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
-                    if (myMarker != null) {
-                        myGoogleMap.clear();
+                    if (marker != null) {
+                        MapsActivity.this.googleMap.clear();
                     }
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
@@ -268,7 +261,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
 
-            myGoogleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+            this.googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
                 @Override
                 public View getInfoWindow(Marker marker) {
@@ -295,20 +288,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             });
 
-            myGoogleMap.setOnInfoWindowClickListener(this);
+            this.googleMap.setOnInfoWindowClickListener(this);
 
 
         }
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            myGoogleMap.setMyLocationEnabled(true);
-            myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
+            this.googleMap.setMyLocationEnabled(true);
+            googleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
                     .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
-            myGoogleApiClient.connect();
+            googleApiClient.connect();
             zoom(15, 90, 40);
             if (MyStartActivity.selectedMarkerData != null && MyStartActivity.selectedMarkerData.isReal()) {
                 setMarker(MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
@@ -327,28 +320,28 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
             if (location != null) {
-                myGoogleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
                 CameraPosition cameraPosition = new CameraPosition.Builder()
                         .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
                         .zoom(zoom)                   // Sets the zoom
                         .bearing(bearing)                // Sets the orientation of the camera to east
                         .tilt(tilt)                   // Sets the tilt of the camera to 30 degrees
                         .build();                   // Creates a CameraPosition from the builder
-                myGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             }
         }
     }
 
     private void centerMap() {
 
-        Location location = myGoogleMap.getMyLocation();
+        Location location = googleMap.getMyLocation();
 
-        if (myMarker != null) {
-            LatLng myLocation = new LatLng(myMarker.getPosition().latitude, myMarker.getPosition().longitude);
-            myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+        if (marker != null) {
+            LatLng myLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         } else if (location != null) {
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            myGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         } else {
             goToEurope();
         }
@@ -357,16 +350,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void goToEurope() {
         LatLng coordinates = new LatLng(56.54204, 13.36096);
         CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 3);
-        myGoogleMap.moveCamera(camUpdate);
+        googleMap.moveCamera(camUpdate);
     }
 
     private void goToLocationZoom(double lat, double lng, float zoom) {
         LatLng coordinates = new LatLng(lat, lng);
         CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, zoom);
-        myGoogleMap.moveCamera(camUpdate);
+        googleMap.moveCamera(camUpdate);
     }
 
-    public void geoLocate(View view) {
+    public void geoLocate(@SuppressWarnings("unused") View view) {
+        Log.d("geoLocate", "");
         checkGPS();
 
         if (addressName != null) {
@@ -382,10 +376,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(double lat, double lng) {
+        Log.d("setMarker", "");
         checkGPS();
         checkAndConnect();
 
-        if (myMarker != null) {                                      // If marker has a reference, remove it.
+        if (marker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
         }
 
@@ -393,8 +388,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .draggable(true)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
                 .position(new LatLng(lat, lng));
-        myMarker = myGoogleMap.addMarker(options);
-        myCircle = drawCircle(new LatLng(lat, lng));
+        marker = googleMap.addMarker(options);
+        circle = drawCircle(new LatLng(lat, lng));
+        alarm.setAlarm(this);
         startLocationRequest();
 
     }
@@ -408,16 +404,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .strokeColor(Color.BLUE)
                 .strokeWidth(3);
 
-        return myGoogleMap.addCircle(circleOptions);
+        return googleMap.addCircle(circleOptions);
     }
 
     private void removeEverything() {
-        if (myMarker != null) {
-            myMarker.remove();
-            myMarker = null;        // To save some space
-            if (myCircle != null) {
-                myCircle.remove();
-                myCircle = null;        // memory saving
+        if (marker != null) {
+            marker.remove();
+            marker = null;        // To save some space
+            if (circle != null) {
+                circle.remove();
+                circle = null;        // memory saving
             }
         }
     }
@@ -433,17 +429,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
                 Intent j = new Intent(this, MyPreferencesActivity.class);
-                if (myMarker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                if (marker != null) {
+                    MyStartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
+                    MyStartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
                 }
                 startActivity(j);
                 return true;
             case R.id.menuItemHelp:
                 Intent k = new Intent(this, MyHelpActivity.class);
-                if (myMarker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(myMarker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(myMarker.getPosition().longitude);
+                if (marker != null) {
+                    MyStartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
+                    MyStartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
                 }
                 startActivity(k);
                 return true;
@@ -481,7 +477,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                         addMarkerDataToList(name);
-                        myMarker.hideInfoWindow();
+                        MapsActivity.this.marker.hideInfoWindow();
                     }
                 });
 
@@ -492,8 +488,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(myGoogleApiClient, myLocationRequest, locationListener);
+        Log.d("onConnected", "");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, myLocationRequest, this);
         }
     }
 
@@ -512,24 +509,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showPopup() {
+        Log.d("showPopup", "");
         addNotificationEnd();
         LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.screen_popup,
                 (ViewGroup) findViewById(R.id.popup_element));
-        pw = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        pw.showAtLocation(layout, Gravity.CENTER, 0, 0);
+        popupWindow = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+        popupWindow.showAtLocation(layout, Gravity.CENTER, 0, 0);
 
-        pw.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
-        pw.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
+        popupWindow.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
+        popupWindow.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
 
-        pw.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
+        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
             @Override
             public void onDismiss() {
-                mySound.pause();
+                mediaPlayer.pause();
                 removeEverything();
                 userNotified = false;
-                pw.dismiss();
+                popupWindow.dismiss();
             }
         });
 
@@ -537,60 +535,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         closePopUp.setOnClickListener(cancel_button_click_listener);
     }
 
-    public void myOnLocationChanged(Location location) {
-        // Called every time user changes location
-        if (location == null) {
-            Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
-            Log.e("onLocationChanged", "Can't get current location");
-            return;
-        }
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        if (myMarker != null) {
-            double distance = haversine(lat, lon, myMarker.getPosition().latitude, myMarker.getPosition().longitude);
-            Log.d("distance:", String.valueOf(distance));
-            Log.d("maxSpeed:", String.valueOf(maximumSpeed));
-            // Check if reached destination
-            if (distance <= myCircle.getRadius() / 1000) {
-                if (!userNotified) {
-                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                    v.vibrate(500);
-                    mySound.start();
-                    showPopup();
-                    userNotified = true;
-                    alarm.cancelAlarm(context);
-                    notificationManager.cancel(NOTIFICATION_ID);
-                    Log.d("user", "notified");
-                } else {// stop tracking, when user is notified
-                    stopLocationRequest();
-                    Log.d("LocationRequest", "stopped");
-                }
-                Log.d("Destination", "reached");
-            } else {
-                // Else set interval for location depending on distance
-                interval = (long) (3600_000 * distance / maximumSpeed);
-                Log.d("onCange", "interval:" + interval);
-                stopLocationRequest();
-            }
-        }
-    }
-
     public void changeMapType(String type) {
         switch (type) {
             case "1":
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
+                googleMap.setMapType(GoogleMap.MAP_TYPE_NONE);
                 break;
             case "2":
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
                 break;
             case "3":
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
                 break;
             case "4":
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
                 break;
             case "5":
-                myGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
                 break;
         }
     }
@@ -600,14 +560,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void initSound() {
-        mySound = MediaPlayer.create(this, Uri.parse(ringtonePath));
+        mediaPlayer = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
     public void addMarkerDataToList(String name) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
-        toBeAdded.setLatitude(myMarker.getPosition().latitude);
-        toBeAdded.setLongitude(myMarker.getPosition().longitude);
+        toBeAdded.setLatitude(marker.getPosition().latitude);
+        toBeAdded.setLongitude(marker.getPosition().longitude);
         if (markerDataList.add(toBeAdded)) {
             if (saveMarkerDataList())
                 Toast.makeText(this, "Alarm saved", Toast.LENGTH_SHORT).show();
@@ -635,13 +595,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case MY_PERMISSION_FINE_LOCATIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                        myGoogleMap.setMyLocationEnabled(true);
-                        myGoogleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
+                        googleMap.setMyLocationEnabled(true);
+                        googleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
                                 .addApi(LocationServices.API)
                                 .addConnectionCallbacks(this)
                                 .addOnConnectionFailedListener(this)
                                 .build();
-                        myGoogleApiClient.connect();
+                        googleApiClient.connect();
                     }
                 } else {
                     Toast.makeText(getApplicationContext(), "this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
@@ -652,7 +612,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    //Dobavlenij kod!!!   14.02.2017
+
     private void buildAlertMessageNoGps() {
+        Log.d("buildAlertMessageNoGps", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
                 .setCancelable(false)
@@ -672,10 +635,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-    //Dobavlenij kod!!!   14.02.2017
-
     private void buildAlertMessageNoWifi() {
-        Log.d("buildAlertMessageNoWifi", "started");
+        Log.d("buildAlertMessageNoWifi", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -692,21 +653,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alert.show();
     }
 
-    public void stopTrackingBut(View view) {
+    public void stopTrackingBut(@SuppressWarnings("unused") View view) {
         Button button = (Button) findViewById(R.id.button4);
         if (flag) {
-            button.setBackgroundColor(Color.RED);
+            button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             flag = false;
-            alarm.cancelAlarm(context);
+            alarm.cancelAlarm(this);
             stopLocationRequest();
             button.setText("Start");
             Log.d("Tracking", "paused");
         } else {
-            button.setBackgroundColor(Color.GREEN);
+            button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             flag = true;
-            alarm.setAlarm(context);
+            alarm.setAlarm(this);
             startLocationRequest();
             button.setText("Pause");
             Log.d("Tracking", "started");
@@ -714,6 +675,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void startLocationRequest() {
+        Log.d("startLocationRequest", "");
         checkGPS();
         myLocationRequest = new LocationRequest();
         //myLocationRequest = LocationRequest.create();
@@ -733,14 +695,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void stopLocationRequest() {
-        if (myGoogleApiClient != null && myGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(myGoogleApiClient, locationListener);
-            myGoogleApiClient.disconnect();
+        Log.d("stopLocationRequest", "");
+        if (googleApiClient != null && googleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+            googleApiClient.disconnect();
         }
         Log.d("stopLocationRequest", "stopped successfully");
     }
 
     public void enableWiFi() {
+        Log.d("enableWiFi", "");
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
         startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
@@ -748,11 +712,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void checkGPS() {
-        manager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
+        Log.d("checkGPS", "");
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) buildAlertMessageNoGps();
     }
 
     public void checkAndConnect() {
+        Log.d("checkAndConnect", "");
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         // test for connection
         if (cm != null) {
@@ -806,10 +772,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mBuilder.setContentIntent(pendingIntent);
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(2, mBuilder.build());
+        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-    static MapsActivity getMapsActivity() {
-        return mapsActivity;
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d("onLocationChanged", "");
+        // Called every time user changes location
+        if (location == null) {
+            Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
+            Log.e("onLocationChanged", "Can't get current location");
+            return;
+        }
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        if (marker != null) {
+            double distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
+            Log.d("distance:", String.valueOf(distance));
+            Log.d("maxSpeed:", String.valueOf(maximumSpeed));
+            // Check if reached destination
+            if (distance <= circle.getRadius() / 1000) {
+                if (!userNotified) {
+                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                    v.vibrate(500);
+                    mediaPlayer.start();
+                    showPopup();
+                    userNotified = true;
+                    alarm.cancelAlarm(this);
+                    notificationManager.cancel(NOTIFICATION_ID);
+                    Log.d("user", "notified");
+                } else {// stop tracking, when user is notified
+                    stopLocationRequest();
+                    Log.d("LocationRequest", "stopped");
+                }
+                Log.d("Destination", "reached");
+            } else {
+                // Else set interval for location depending on distance
+                interval = (long) (3600_000 * distance / maximumSpeed);
+                Log.d("onCange", "interval:" + interval);
+                stopLocationRequest();
+            }
+        }
     }
 }
