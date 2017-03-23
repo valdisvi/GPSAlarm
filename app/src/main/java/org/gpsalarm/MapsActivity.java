@@ -94,6 +94,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     LatLng addressGeo;
     String addressName;
     private boolean userNotified = false;
+    private boolean isClose = false;
+    private boolean isTracking = true;
+
     private PopupWindow popupWindow;
     private LocationManager locationManager;
 
@@ -105,7 +108,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             popupWindow.dismiss();
         }
     };
-    private boolean flag = true;
 
     static MapsActivity getMapsActivity() {
         return (MapsActivity) context;
@@ -168,7 +170,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -236,15 +237,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
-
                     LatLng coordinates = marker.getPosition();
                     circle = drawCircle(coordinates);
-
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
-
                     setMarker(roundedLatitude, roundedLongitude);
-
                 }
             });
 
@@ -257,7 +254,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
                     setMarker(roundedLatitude, roundedLongitude);
-
                 }
             });
 
@@ -271,19 +267,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public View getInfoContents(Marker marker) {
                     View v = getLayoutInflater().inflate(R.layout.info_window, null);
-
                     TextView tvLocality = (TextView) v.findViewById(R.id.tv_locality);
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
                     TextView tvLng = (TextView) v.findViewById(R.id.tv_lng);
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
-
                     LatLng coordinates = marker.getPosition();
-
                     tvLocality.setText(marker.getTitle());
                     tvLat.setText("Latitude: " + coordinates.latitude);
                     tvLng.setText("Longitude: " + coordinates.longitude);
                     tvSnippet.setText(marker.getSnippet());
-
                     return v;
                 }
             });
@@ -362,7 +354,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void geoLocate(@SuppressWarnings("unused") View view) {
         Log.d("geoLocate", "");
         checkGPS();
-
         if (addressName != null) {
             double lat = addressGeo.latitude;
             double lng = addressGeo.longitude;
@@ -379,11 +370,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("setMarker", "");
         checkGPS();
         checkAndConnect();
-
         if (marker != null) {                                      // If marker has a reference, remove it.
             removeEverything();
         }
-
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
                 .draggable(true)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
@@ -395,14 +384,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private Circle drawCircle(LatLng latLng) {
-
         CircleOptions circleOptions = new CircleOptions()
                 .center(latLng)
                 .radius(alarmRadius)
                 .fillColor(0x33FF0000)              // 33 for alpha (transparency)
                 .strokeColor(Color.BLUE)
                 .strokeWidth(3);
-
         return googleMap.addCircle(circleOptions);
     }
 
@@ -445,7 +432,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             default:
                 return super.onOptionsItemSelected(item);
         }
-
     }
 
     public void onInfoWindowClick(Marker marker) {
@@ -479,8 +465,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         MapsActivity.this.marker.hideInfoWindow();
                     }
                 });
-
-
         Dialog myDialog = alertBuilder.create();
         myDialog.show();
     }
@@ -530,7 +514,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 popupWindow.dismiss();
             }
         });
-
         closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
         closePopUp.setOnClickListener(cancel_button_click_listener);
     }
@@ -613,7 +596,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     //Dobavlenij kod!!!   14.02.2017
-
     private void buildAlertMessageNoGps() {
         Log.d("buildAlertMessageNoGps", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -657,18 +639,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button button = (Button) findViewById(R.id.button4);
         // Reinitialize alarm time
         alarm = new TrackerAlarmReceiver();
-        if (flag) {
+        if (isTracking) {
             button.setBackgroundColor(Color.GREEN);
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
-            flag = false;
+            isTracking = false;
             alarm.cancelAlarm(this);
             stopLocationRequest();
+            alarm.releaseWakeLock();
             button.setText("Start");
             Log.d("Tracking", "paused");
         } else {
             button.setBackgroundColor(Color.RED);
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
-            flag = true;
+            isTracking = true;
             startLocationRequest();
             alarm.setAlarm(this);
             button.setText("Pause");
@@ -683,15 +666,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //locationRequest = LocationRequest.create();
         if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
         //locationRequest = new LocationRequest();
-        if (interval > 300_000) // more than 5 minutes
+        if (interval > 300_000) { // more than 5 minutes
+            isClose = false;
             locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
-        if (interval < 60_000) // less than minute
+        }
+        if (interval < 60_000) { // less than minute
+            isClose = true;
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(interval); //
+        }
+        locationRequest.setInterval(interval);
         locationRequest.setFastestInterval(interval);
+        userNotified = false;
         Log.d("startLocationRequest", "interval:" + String.valueOf(locationRequest.getInterval()));
         Log.d("startLocationRequest", "fastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
-        userNotified = false;
         Log.d("startLocationRequest", "completed successfully");
     }
 
@@ -732,7 +719,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addNotificationAppRunning() {
-
         Notification.Builder mBuilder =
                 new Notification.Builder(this)
                         .setSmallIcon(R.drawable.alarm1)
@@ -740,14 +726,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .setContentText("Programm Running")
                         .setOngoing(true);
         Intent resultIntent = new Intent(this,
-
                 MapsActivity.class);
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
         mBuilder.setContentIntent(pendingIntent);
         notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -755,7 +737,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addNotificationEnd() {
-
         Notification.Builder mBuilder =
                 new Notification.Builder(this)
                         .setSmallIcon(R.drawable.ic_launcher_web)
@@ -764,13 +745,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .setAutoCancel(true)
                         .setPriority(Notification.PRIORITY_MIN);
         Intent resultIntent = new Intent(this,
-
                 MapsActivity.class);
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
         mBuilder.setContentIntent(pendingIntent);
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -795,6 +773,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Check if reached destination
             if (distance <= circle.getRadius() / 1000) {
                 stopLocationRequest();
+                alarm.releaseWakeLock();
                 if (!userNotified) {
                     Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     v.vibrate(500);
@@ -809,7 +788,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             } else {
                 // Else set interval for location, depending on distance
                 interval = (long) (3600_000 * distance / maximumSpeed);
-                Log.d("onCange", "interval:" + interval);
+                if (isClose)
+                    Log.d("onLocationChanged", "is close, wakeLock held");
+                else {
+                    alarm.releaseWakeLock();
+                    Log.d("onLocationChanged", "is far, wakeLock released");
+                }
+                Log.d("onLocationChanged", "interval:" + interval);
             }
         }
     }

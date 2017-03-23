@@ -16,27 +16,26 @@ import android.os.PowerManager.WakeLock;
 
 public class TrackerAlarmReceiver extends BroadcastReceiver {
     final public static String ONE_TIME = "onetime";
-    MapsActivity mapsActivity;
-    PowerManager powerManager;
-    WakeLock wakeLock;
+    static MapsActivity mapsActivity;
+    static PowerManager powerManager;
+    static WakeLock wakeLock;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Format formatter = new SimpleDateFormat("HH:mm:ss");
         String msg = (formatter.format(new Date()));
         Log.d("onReceive", "time: " + msg);
-        powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
-        //Acquire the lock
-        wakeLock.acquire();
+        if (powerManager == null)
+            powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        if (wakeLock == null)
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
+        //Acquire the lock, if not still held
+        if (!wakeLock.isHeld())
+            wakeLock.acquire();
         // Start location requests
         MapsActivity.getMapsActivity().startLocationRequest();
-        // Stop location requests to save battery
-        MapsActivity.getMapsActivity().stopLocationRequest();
         // Reset alarm time
         setAlarm(MapsActivity.getMapsActivity());
-        //Release the lock
-        releaseWakeLock();
     }
 
     public void setAlarm(Context context) {
@@ -68,7 +67,10 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
 
     public void releaseWakeLock() {
         //Release the lock
-        wakeLock.release();
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+            Log.d("releaseWakeLock", "lock released");
+        }
     }
 
 }
