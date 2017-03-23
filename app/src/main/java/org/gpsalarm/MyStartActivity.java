@@ -35,10 +35,8 @@ public class MyStartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             MapsActivity.markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile");
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e("MyStartActivity", "onCreate:" + e);
         }
 
         if (MapsActivity.markerDataList.size() == 0) {
@@ -115,7 +113,7 @@ public class MyStartActivity extends AppCompatActivity {
         return false;
     }
 
-    public void toMap(@SuppressWarnings("unused")View view) {
+    public void toMap(@SuppressWarnings("unused") View view) {
         Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }

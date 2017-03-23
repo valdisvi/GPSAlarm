@@ -77,7 +77,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int NOTIFICATION_ID = 899068621;
     static String ringtonePath;
     static int maximumSpeed;
-    static long interval = 1000; // set default (minimum) to 1s
+    static long interval = 0;                    // interval between tracking requests
+    static private boolean userNotified = false; // is user notified about arrival
+    static private boolean isTracking = true;    // is tracking going on
+    static private boolean checkedWiFi = false;  // is WiFi connection suggested
     static Context context;
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     NotificationManager notificationManager;
@@ -93,17 +96,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
-    private boolean userNotified = false;
-    private boolean isClose = false;
-    private boolean isTracking = true;
-
     private PopupWindow popupWindow;
     private LocationManager locationManager;
+
+    private enum Estimate { // List of travel qualitative distance estimation values
+        FAR, NEAR, DISABLED;
+    }
 
     private OnClickListener cancel_button_click_listener = new OnClickListener() {
         public void onClick(View v) {
             mediaPlayer.pause();
-            removeEverything();
+            clearMarker();
             userNotified = false;
             popupWindow.dismiss();
         }
@@ -123,6 +126,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alarm = new TrackerAlarmReceiver();
 
         checkGPS();
+        checkAndConnect();
 
         if (googleServicesAvailable()) {
             setContentView(R.layout.activity_map);
@@ -142,7 +146,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     if (key.equals("alarmRadius")) {
                         setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
-                        removeEverything();
+                        clearMarker();
                     }
                     if (key.equals("alarmRingtone")) {
                         ringtonePath = prefs.getString("alarmRingtone", DEFAULT_ALARM_ALERT_URI.toString());
@@ -166,7 +170,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
         }
-        //checkAndConnect();
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -325,9 +328,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void centerMap() {
-
         Location location = googleMap.getMyLocation();
-
         if (marker != null) {
             LatLng myLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
@@ -370,9 +371,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("setMarker", "");
         checkGPS();
         checkAndConnect();
-        if (marker != null) {                                      // If marker has a reference, remove it.
-            removeEverything();
-        }
+        clearMarker();  // If marker has a reference, remove it.
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
                 .draggable(true)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))      // Here it is possible to specify custom icon design.
@@ -380,7 +379,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         marker = googleMap.addMarker(options);
         circle = drawCircle(new LatLng(lat, lng));
         startLocationRequest();
-        alarm.setAlarm(this);
     }
 
     private Circle drawCircle(LatLng latLng) {
@@ -393,7 +391,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return googleMap.addCircle(circleOptions);
     }
 
-    private void removeEverything() {
+    private void clearMarker() {
         if (marker != null) {
             marker.remove();
             marker = null;        // To save some space
@@ -435,9 +433,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void onInfoWindowClick(Marker marker) {
-        // Toast.makeText(this, "Info Window long click", Toast.LENGTH_SHORT).show();
         View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
-
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setView(myView);
         final EditText userInput = (EditText) myView.findViewById(R.id.etxtInputName);
@@ -509,7 +505,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onDismiss() {
                 mediaPlayer.pause();
-                removeEverything();
+                clearMarker();
                 userNotified = false;
                 popupWindow.dismiss();
             }
@@ -595,7 +591,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    //Dobavlenij kod!!!   14.02.2017
     private void buildAlertMessageNoGps() {
         Log.d("buildAlertMessageNoGps", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -636,58 +631,64 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void stopTrackingBut(@SuppressWarnings("unused") View view) {
-        Button button = (Button) findViewById(R.id.button4);
         // Reinitialize alarm time
         alarm = new TrackerAlarmReceiver();
         if (isTracking) {
-            button.setBackgroundColor(Color.GREEN);
-            Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
-            isTracking = false;
-            alarm.cancelAlarm(this);
+            // TODO should disable Pause/Start buttons when arrived
             stopLocationRequest();
-            alarm.releaseWakeLock();
-            button.setText("Start");
-            Log.d("Tracking", "paused");
+            Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
+            Log.d("stopTrackingBut", "paused");
         } else {
-            button.setBackgroundColor(Color.RED);
-            Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
-            isTracking = true;
+            interval = 0; // reset interval to start precise calculation
             startLocationRequest();
-            alarm.setAlarm(this);
-            button.setText("Pause");
-            Log.d("Tracking", "started");
+            Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
+            Log.d("stopTrackingBut", "started");
         }
     }
 
     void startLocationRequest() {
-        Log.d("startLocationRequest", "");
+        isTracking = true;
+        userNotified = false;
         checkGPS();
+        renewLocationRequest();
+        Button button = (Button) findViewById(R.id.button4);
+        button.setBackgroundColor(Color.RED);
+        button.setText("Pause");
+        Log.d("startLocationRequest",
+                "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
+                        "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
+    }
+
+    void renewLocationRequest() {
         locationRequest = new LocationRequest();
-        //locationRequest = LocationRequest.create();
-        if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-        //locationRequest = new LocationRequest();
-        if (interval > 300_000) { // more than 5 minutes
-            isClose = false;
-            locationRequest.setPriority(LocationRequest.PRIORITY_LOW_POWER);
-        }
-        if (interval < 60_000) { // less than minute
-            isClose = true;
-            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        switch (getEstimate()) {
+            case DISABLED:
+                locationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
+                break;
+            case FAR:
+                locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+                locationRequest.setNumUpdates(1); // Do just one update before going to sleep
+                break;
+            case NEAR:
+                locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
         locationRequest.setInterval(interval);
         locationRequest.setFastestInterval(interval);
-        userNotified = false;
-        Log.d("startLocationRequest", "interval:" + String.valueOf(locationRequest.getInterval()));
-        Log.d("startLocationRequest", "fastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
-        Log.d("startLocationRequest", "completed successfully");
+        alarm.setAlarm(this);
     }
 
     void stopLocationRequest() {
-        Log.d("stopLocationRequest", "");
         if (googleApiClient != null && googleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
             googleApiClient.disconnect();
         }
+        locationRequest = null;
+        isTracking = false;
+        alarm.cancelAlarm(this);
+        alarm.releaseWakeLock();
+        Button button = (Button) findViewById(R.id.button4);
+        button.setBackgroundColor(Color.GREEN);
+        button.setText("Start");
         Log.d("stopLocationRequest", "stopped successfully");
     }
 
@@ -707,15 +708,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void checkAndConnect() {
-        Log.d("checkAndConnect", "");
-        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
-        // test for connection
-        if (cm != null) {
-            if (!(cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())) {
-                buildAlertMessageNoWifi();
+        if (!checkedWiFi) {
+            ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            // test for connection
+            if (cm != null) {
+                if (!(cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())) {
+                    buildAlertMessageNoWifi();
+                }
             }
+            checkedWiFi = true;
+            Log.d("checkAndConnect", "checkedWiFi");
         }
-
     }
 
     public void addNotificationAppRunning() {
@@ -756,31 +759,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    // Invoked when location change event occurs
     public void onLocationChanged(Location location) {
-        Log.d("onLocationChanged", "");
-        // Called every time user changes location
         if (location == null) {
             Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
             Log.e("onLocationChanged", "Can't get current location");
             return;
         }
+        Log.d("onLocationChanged", "location  accuracy: " + location.getAccuracy() + "m");
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         if (marker != null) {
             double distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
-            Log.d("distance:", String.valueOf(distance));
-            Log.d("maxSpeed:", String.valueOf(maximumSpeed));
+            Log.d("onLocationChanged", "distance:" + String.valueOf(distance) + "km");
+            Log.d("onLocationChanged", "maxSpeed:" + String.valueOf(maximumSpeed) + "km/h");
             // Check if reached destination
             if (distance <= circle.getRadius() / 1000) {
-                stopLocationRequest();
-                alarm.releaseWakeLock();
                 if (!userNotified) {
+                    alarm.acquireLock();
                     Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     v.vibrate(500);
                     mediaPlayer.start();
                     showPopup();
                     userNotified = true;
-                    alarm.cancelAlarm(this);
+                    stopLocationRequest();
                     notificationManager.cancel(NOTIFICATION_ID);
                     Log.d("user", "notified");
                 }
@@ -788,14 +790,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             } else {
                 // Else set interval for location, depending on distance
                 interval = (long) (3600_000 * distance / maximumSpeed);
-                if (isClose)
-                    Log.d("onLocationChanged", "is close, wakeLock held");
-                else {
-                    alarm.releaseWakeLock();
-                    Log.d("onLocationChanged", "is far, wakeLock released");
+                if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
+                switch (getEstimate()) {
+                    case NEAR:
+                        Log.d("onLocationChanged", "is near, wakeLock held");
+                        break;
+                    default:
+                        alarm.releaseWakeLock();
+                        Log.d("onLocationChanged", "is far (or not tracking), wakeLock released");
                 }
-                Log.d("onLocationChanged", "interval:" + interval);
             }
         }
+    }
+
+    /**
+     * Return enumerated value of estimated distance, based on status and expected traveling time
+     */
+    private Estimate getEstimate() {
+        if (!isTracking)
+            return Estimate.DISABLED; // tracking disabled
+        else if (interval > 120_000)  // not tracking or more than 2 minutes
+            return Estimate.FAR;
+        else if (interval <= 120_000 && interval > 1_000) // between 1 minute and 1 second
+            return Estimate.NEAR;
+        return Estimate.NEAR; // for new tracking requests
     }
 }

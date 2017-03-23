@@ -2,19 +2,18 @@ package org.gpsalarm;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import android.os.PowerManager.WakeLock;
-
-public class TrackerAlarmReceiver extends BroadcastReceiver {
+public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
     final public static String ONE_TIME = "onetime";
     static MapsActivity mapsActivity;
     static PowerManager powerManager;
@@ -29,21 +28,21 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
             powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         if (wakeLock == null)
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
-        //Acquire the lock, if not still held
-        if (!wakeLock.isHeld())
-            wakeLock.acquire();
+        //Acquire the lock, if not still/yet held
+        acquireLock();
         // Start location requests
-        MapsActivity.getMapsActivity().startLocationRequest();
+        Log.d("onReceive", "context" + context);
+        if (mapsActivity != null)
+            mapsActivity.renewLocationRequest();
         // Reset alarm time
         setAlarm(MapsActivity.getMapsActivity());
     }
 
-    public void setAlarm(Context context) {
+    void setAlarm(Context context) {
         if (context instanceof MapsActivity) {
             mapsActivity = (MapsActivity) context;
             Log.d("setAlarm", "mapsActivity is set");
-        } else
-            Log.d("setAlarm", "mapsActivity == null");
+        }
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, TrackerAlarmReceiver.class);
         intent.putExtra(ONE_TIME, Boolean.FALSE);
@@ -52,12 +51,11 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
         Log.d("TrackerAlarmReceiver", "alarm set to:" + MapsActivity.interval);
     }
 
-    public void cancelAlarm(Context context) {
+    void cancelAlarm(Context context) {
         if (context instanceof MapsActivity) {
             mapsActivity = (MapsActivity) context;
             Log.d("cancelAlarm", "mapsActivity is set");
-        } else
-            Log.d("cancelAlarm", "mapsActivity == null");
+        }
         Intent intent = new Intent(context, TrackerAlarmReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(context, 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -65,11 +63,19 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
         Log.d("TrackerAlarmReceiver", "alarm canceled");
     }
 
-    public void releaseWakeLock() {
+    void releaseWakeLock() {
         //Release the lock
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
             Log.d("releaseWakeLock", "lock released");
+        }
+    }
+
+    void acquireLock() {
+        //Acquire the lock, if not still held
+        if (wakeLock != null && !wakeLock.isHeld()) {
+            wakeLock.acquire();
+            Log.d("acquireLock", "lock acquired");
         }
     }
 

@@ -3,17 +3,15 @@ package org.gpsalarm;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 
 import com.felipecsl.gifimageview.library.GifImageView;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
-
-import org.gpsalarm.R;
 
 public class SplashScreen extends Activity {
 
@@ -25,7 +23,7 @@ public class SplashScreen extends Activity {
 
         setContentView(R.layout.activity_splash_screen);
 
-        gifImageView = (GifImageView)findViewById(R.id.gifImageView);
+        gifImageView = (GifImageView) findViewById(R.id.gifImageView);
 
         //set GIF image resource
         try {
@@ -33,9 +31,8 @@ public class SplashScreen extends Activity {
             byte[] bytes = IOUtils.toByteArray(inputStream);
             gifImageView.setBytes(bytes);
             gifImageView.startAnimation();
-        } catch (IOException ex) {
-
-
+        } catch (Exception e) {
+            Log.e("SplashScreen", "onCreate:" + e);
         }
 
         // wait a little and start Maps Activity
