@@ -5,28 +5,30 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.os.PowerManager.WakeLock;
+
 public class TrackerAlarmReceiver extends BroadcastReceiver {
     final public static String ONE_TIME = "onetime";
     MapsActivity mapsActivity;
+    PowerManager powerManager;
+    WakeLock wakeLock;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Format formatter = new SimpleDateFormat("HH:mm:ss");
         String msg = (formatter.format(new Date()));
         Log.d("onReceive", "time: " + msg);
-        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
+        powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "TrackerAlarmReceiver");
         //Acquire the lock
-        wl.acquire();
+        wakeLock.acquire();
         // Start location requests
         MapsActivity.getMapsActivity().startLocationRequest();
         // Stop location requests to save battery
@@ -34,7 +36,7 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
         // Reset alarm time
         setAlarm(MapsActivity.getMapsActivity());
         //Release the lock
-        wl.release();
+        releaseWakeLock();
     }
 
     public void setAlarm(Context context) {
@@ -62,6 +64,11 @@ public class TrackerAlarmReceiver extends BroadcastReceiver {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(sender);
         Log.d("TrackerAlarmReceiver", "alarm canceled");
+    }
+
+    public void releaseWakeLock() {
+        //Release the lock
+        wakeLock.release();
     }
 
 }
