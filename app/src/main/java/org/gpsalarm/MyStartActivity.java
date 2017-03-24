@@ -34,7 +34,7 @@ public class MyStartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            MapsActivity.markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile");
+            MapsActivity.markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, MapsActivity.FILENAME);
         } catch (Exception e) {
             Log.e("MyStartActivity", "onCreate:" + e);
         }
@@ -104,7 +104,7 @@ public class MyStartActivity extends AppCompatActivity {
 
     private boolean saveMarkerDataList() {
         try {
-            InternalStorage.writeObject(this, "myFile", MapsActivity.markerDataList);
+            InternalStorage.writeObject(this, MapsActivity.FILENAME, MapsActivity.markerDataList);
             return true;
         } catch (IOException e) {
             Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();

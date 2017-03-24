@@ -74,7 +74,8 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
     final static int MY_PERMISSION_FINE_LOCATIONS = 101;
-    static final int NOTIFICATION_ID = 899068621;
+    final static int NOTIFICATION_ID = 899068621;
+    final static String FILENAME = "GPSAlarm";
     static String ringtonePath;
     static int maximumSpeed;
     static long interval = 0;                    // interval between tracking requests
@@ -159,7 +160,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
 
             try {
-                markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, "myFile"); // Retrieve the list from internal storage
+                markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, FILENAME); // Retrieve the list from internal storage
             } catch (IOException e) {
                 Log.e("File Read error: ", e.getMessage());
             } catch (ClassNotFoundException e) {
@@ -558,7 +559,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private boolean saveMarkerDataList() {
         try {
-            InternalStorage.writeObject(this, "myFile", markerDataList);
+            InternalStorage.writeObject(this, FILENAME, markerDataList);
             return true;
         } catch (IOException e) {
             Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
