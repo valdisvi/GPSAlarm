@@ -454,7 +454,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return;
                             }
                         }
-                        addMarkerDataToList(name);
+                        addMarkerDataToList(name, MapsActivity.marker);
                         MapsActivity.this.marker.hideInfoWindow();
                     }
                 });
@@ -546,7 +546,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mediaPlayer = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList(String name) {
+    public void addMarkerDataToList(String name, Marker marker) {
         MarkerData toBeAdded = new MarkerData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
