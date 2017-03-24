@@ -88,7 +88,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     static private boolean checkedWiFi = false;  // is WiFi connection suggested
     static Context context;
     static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
-    NotificationManager notificationManager;
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
     Circle circle;
@@ -190,6 +189,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 addressName = place.getName().toString();
                 Log.i("V", "longitude: " + place.getLatLng().longitude);
             }
+
             @Override
             public void onError(Status status) {
             }
@@ -392,14 +392,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void clearMarker() {
-        if (marker != null) {
-            marker.remove();
-            marker = null;        // To save some space
-            if (circle != null) {
-                circle.remove();
-                circle = null;        // memory saving
-            }
-        }
+        if (marker != null)
+            marker = null;
+        if (circle != null)
+            circle = null;
     }
 
     @Override
@@ -410,16 +406,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent intent;
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
-                Intent j = new Intent(this, MyPreferencesActivity.class);
-                setMarkerData();
-                startActivity(j);
+                intent = new Intent(this, MyPreferencesActivity.class);
+                startActivity(intent);
                 return true;
             case R.id.menuItemHelp:
-                Intent k = new Intent(this, MyHelpActivity.class);
-                setMarkerData();
-                startActivity(k);
+                intent = new Intent(this, MyHelpActivity.class);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -491,7 +486,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void showPopup() {
         Log.d("showPopup", "");
-        addNotificationEnd();
+        addNotification("GPS alarm","You have arrived!");
         LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.screen_popup,
@@ -637,6 +632,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userNotified = false;
         checkGPS();
         renewLocationRequest();
+        addNotification("GPS alarm","Tracking is started");
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
@@ -709,12 +705,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void addNotificationEnd() {
+    public void addNotification(String title, String text) {
         Notification.Builder mBuilder =
                 new Notification.Builder(this)
                         .setSmallIcon(R.drawable.ic_launcher_web)
-                        .setContentTitle("GPSAlarm")
-                        .setContentText("You have arrived!")
+                        .setContentTitle(title)
+                        .setContentText(text)
                         .setAutoCancel(true)
                         .setPriority(Notification.PRIORITY_MIN);
         Intent resultIntent = new Intent(this,
@@ -723,9 +719,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(pendingIntent);
-        NotificationManager mNotificationManager =
+        NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+
     }
 
     @Override
@@ -761,6 +758,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 showPopup();
                 userNotified = true;
                 stopLocationRequest();
+                NotificationManager notificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(NOTIFICATION_ID);
                 Log.d("user", "notified");
             }

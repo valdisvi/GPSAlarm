@@ -53,8 +53,7 @@ public class MyStartActivity extends AppCompatActivity {
 
             Collections.sort(markerDataList, new Comparator<MarkerData>() {
 
-            /* This comparator will sort MarkerData objects alphabetically. */
-
+                /* This comparator sorts MarkerData objects alphabetically. */
                 @Override
                 public int compare(MarkerData a1, MarkerData a2) {
                     // String implements Comparable
@@ -116,14 +115,15 @@ public class MyStartActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
+        Intent intent;
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
-                Intent j = new Intent(this, MyPreferencesActivity.class);
-                startActivity(j);
+                intent = new Intent(this, MyPreferencesActivity.class);
+                context.startActivity(intent);
                 return true;
             case R.id.menuItemHelp:
-                Intent k = new Intent(this, MyHelpActivity.class);
-                startActivity(k);
+                intent = new Intent(this, MyHelpActivity.class);
+                context.startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
