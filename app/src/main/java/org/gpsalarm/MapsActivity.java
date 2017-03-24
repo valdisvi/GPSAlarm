@@ -190,13 +190,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 addressName = place.getName().toString();
                 Log.i("V", "longitude: " + place.getLatLng().longitude);
             }
-
             @Override
             public void onError(Status status) {
             }
-
         });
-        addNotificationAppRunning();
     }
 
     private void initMap() {
@@ -710,24 +707,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             checkedWiFi = true;
             Log.d("checkAndConnect", "checkedWiFi");
         }
-    }
-
-    public void addNotificationAppRunning() {
-        Notification.Builder mBuilder =
-                new Notification.Builder(this)
-                        .setSmallIcon(R.drawable.alarm1)
-                        .setContentTitle("GPSAlarm")
-                        .setContentText("Programm Running")
-                        .setOngoing(true);
-        Intent resultIntent = new Intent(this,
-                MapsActivity.class);
-        resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(pendingIntent);
-        notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
     public void addNotificationEnd() {
