@@ -28,7 +28,7 @@ import org.gpsalarm.R;
 
 public class MyStartActivity extends AppCompatActivity {
 
-    static MarkerData selectedMarkerData = new MarkerData();
+    static MarkerData selectedMarkerData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +67,7 @@ public class MyStartActivity extends AppCompatActivity {
                     selectedMarkerData = (MarkerData) myAdapter.getItem(i);
                     Toast.makeText(MyStartActivity.this, "Alarm '" + selectedMarkerData.getName() + "' is set", Toast.LENGTH_LONG).show();
                     Intent myIntent = new Intent(MyStartActivity.this, MapsActivity.class);
+                    Log.d("MyStartActivity",selectedMarkerData.getName() + " is selected");
                     startActivity(myIntent);
                 }
             });

@@ -2,8 +2,10 @@ package org.gpsalarm;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -19,8 +21,18 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
     static PowerManager powerManager;
     static WakeLock wakeLock;
 
+    private AlarmManager alarmManager;
+    private PendingIntent alarmIntent;
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        ComponentName comp = new ComponentName(context.getPackageName(), TrackerService.class.getName());
+        Intent service = new Intent(context, TrackerService.class);
+        startWakefulService(context, intent.setComponent(comp));
+    }
+
+    //@Override
+    public void onReceivePrev(Context context, Intent intent) {
         Format formatter = new SimpleDateFormat("HH:mm:ss");
         String msg = (formatter.format(new Date()));
         Log.d("onReceive", "time: " + msg);
@@ -38,7 +50,23 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
         setAlarm(MapsActivity.getMapsActivity());
     }
 
-    void setAlarm(Context context) {
+    public void setAlarm(Context context) {
+        alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, TrackerService.class);
+        alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+
+        /*-
+        ComponentName receiver = new ComponentName(context, MapBootReceiver.class);
+        PackageManager pm = context.getPackageManager();
+
+        pm.setComponentEnabledSetting(receiver,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+        */
+    }
+
+
+    void setAlarmPrev(Context context) {
         if (context instanceof MapsActivity) {
             mapsActivity = (MapsActivity) context;
             Log.d("setAlarm", "mapsActivity is set");

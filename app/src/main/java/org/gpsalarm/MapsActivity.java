@@ -83,11 +83,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     static private boolean isTracking = true;    // is tracking going on
     static private boolean checkedWiFi = false;  // is WiFi connection suggested
     static Context context;
+    static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
     static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     NotificationManager notificationManager;
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
-    Marker marker;    // Separate Marker object to allow operations with it.
     Circle circle;
     int alarmRadius;    // Used by markers. Can now be set through preferences.
     MediaPlayer mediaPlayer;
@@ -122,6 +122,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("onCreate", "");
         super.onCreate(savedInstanceState);
         context = this;
+
+        // Reset marker
+        geoLocate(null);
 
         // Manage wake up alerts
         alarm = new TrackerAlarmReceiver();
@@ -289,7 +292,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             this.googleMap.setMyLocationEnabled(true);
             googleApiClient = new GoogleApiClient.Builder(this)       // This code is for updating current location
@@ -330,21 +332,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void centerMap() {
         Location location = googleMap.getMyLocation();
-        if (marker != null) {
+        if (marker != null) { // Go to marker location
             LatLng myLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
-        } else if (location != null) {
+        } else if (location != null) { // Go to current location
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
-        } else {
-            goToEurope();
+        } else { // Go to Europe
+            LatLng coordinates = new LatLng(56.54204, 13.36096);
+            CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 3);
+            googleMap.moveCamera(camUpdate);
         }
-    }
-
-    private void goToEurope() {
-        LatLng coordinates = new LatLng(56.54204, 13.36096);
-        CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 3);
-        googleMap.moveCamera(camUpdate);
     }
 
     private void goToLocationZoom(double lat, double lng, float zoom) {
@@ -414,18 +412,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
                 Intent j = new Intent(this, MyPreferencesActivity.class);
-                if (marker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
-                }
+                setMarkerData();
                 startActivity(j);
                 return true;
             case R.id.menuItemHelp:
                 Intent k = new Intent(this, MyHelpActivity.class);
-                if (marker != null) {
-                    MyStartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
-                    MyStartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
-                }
+                setMarkerData();
                 startActivity(k);
                 return true;
             default:
@@ -487,6 +479,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
         return results[0] / 1000;
+    }
+
+    private void setMarkerData() {
+        if (marker != null) {
+            MyStartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
+            MyStartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
+        }
     }
 
     private void showPopup() {
