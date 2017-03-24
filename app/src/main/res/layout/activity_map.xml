@@ -27,30 +27,23 @@
         android:id="@+id/line"
         android:layout_below="@+id/place_autocomplete_fragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
         <Button
-            android:text="@string/search_button_text"
+            android:text="Search location"
             android:id="@+id/button"
             android:onClick="geoLocate"
             android:background="@color/wallet_holo_blue_light"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5" />
-
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
         <Button
-            android:text="Pause"
-            android:layout_height="wrap_content"
             android:id="@+id/button4"
-            android:layout_below="@+id/editText"
-            android:layout_toRightOf="@+id/button"
-            android:layout_toEndOf="@+id/button"
-            android:background="@android:color/holo_red_light" android:state_pressed="true"
+            android:background="@android:color/holo_red_light"
             android:onClick="stopTrackingBut"
-            android:layout_weight="0.5"
-            android:layout_width="0dp" />
-
-
-
+            android:state_pressed="true"
+            android:text="Pause tracking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 </RelativeLayout>

@@ -66,30 +66,33 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import static org.gpsalarm.MyStartActivity.FILENAME;
+import static org.gpsalarm.MyStartActivity.markerDataList;
+import static org.gpsalarm.MyStartActivity.saveMarkerDataList;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
+import static org.gpsalarm.InternalStorage.readObject;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
     final static int MY_PERMISSION_FINE_LOCATIONS = 101;
     final static int NOTIFICATION_ID = 899068621;
-    final static String FILENAME = "GPSAlarm";
     static String ringtonePath;
-    static int maximumSpeed;
+    float maximumSpeed; // FIXME set to nonstatic int
     static long interval = 0;                    // interval between tracking requests
     static private boolean userNotified = false; // is user notified about arrival
     static private boolean isTracking = true;    // is tracking going on
     static private boolean checkedWiFi = false;  // is WiFi connection suggested
     static Context context;
     static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
-    static ArrayList<MarkerData> markerDataList = new ArrayList<>();
     NotificationManager notificationManager;
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
     Circle circle;
-    int alarmRadius;    // Used by markers. Can now be set through preferences.
+    float alarmRadius;    // FIXME set to nonstatic int Used by markers. Can now be set through preferences.
     MediaPlayer mediaPlayer;
     LocationRequest locationRequest;  // variable for requesting location
     TrackerAlarmReceiver alarm;
@@ -100,7 +103,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private PopupWindow popupWindow;
     private LocationManager locationManager;
 
-    private enum Estimate { // List of travel qualitative distance estimation values
+    enum Estimate { // List of travel distance estimation values
         FAR, NEAR, DISABLED;
     }
 
@@ -124,7 +127,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         context = this;
 
         // Reset marker
-        geoLocate(null);
+        // FIXME this makes addressName to null, should be deleted
+        // geoLocate(null);
 
         // Manage wake up alerts
         alarm = new TrackerAlarmReceiver();
@@ -175,7 +179,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // Google map searching by addres name
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
@@ -352,7 +356,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(@SuppressWarnings("unused") View view) {
-        Log.d("geoLocate", "");
+        Log.d("geoLocate", "addressName:" + addressName);
         checkGPS();
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -547,25 +551,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
         toBeAdded.setLongitude(marker.getPosition().longitude);
-        if (markerDataList.add(toBeAdded)) {
-            if (saveMarkerDataList())
-                Toast.makeText(this, "Alarm saved", Toast.LENGTH_SHORT).show();
-            else
-                Toast.makeText(this, "File write failed", Toast.LENGTH_SHORT).show();
-        } else
-            Toast.makeText(this, "Failed to add alarm to list", Toast.LENGTH_SHORT).show();
+        markerDataList.add(toBeAdded);
+        saveMarkerDataList();
     }
 
-    private boolean saveMarkerDataList() {
-        try {
-            InternalStorage.writeObject(this, FILENAME, markerDataList);
-            return true;
-        } catch (IOException e) {
-            Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
-            Log.e("IOException", e.getMessage());
-        }
-        return false;
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -637,12 +626,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // TODO should disable Pause/Start buttons when arrived
             stopLocationRequest();
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
-            Log.d("stopTrackingBut", "paused");
+            Log.i("stopTrackingBut", "paused");
         } else {
-            interval = 0; // reset interval to start precise calculation
+            interval = 1000; // reset to smallest interval, to start with precise coordinate calculation
             startLocationRequest();
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
-            Log.d("stopTrackingBut", "started");
+            Log.i("stopTrackingBut", "started");
         }
     }
 
@@ -653,10 +642,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         renewLocationRequest();
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
-        button.setText("Pause");
-        Log.d("startLocationRequest",
+        button.setText("Pause tracking");
+        Log.d("startLocationRequest", "" +
                 "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
-                        "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
+                "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
     }
 
     void renewLocationRequest() {
@@ -664,16 +653,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (getEstimate()) {
             case DISABLED:
                 locationRequest.setPriority(LocationRequest.PRIORITY_NO_POWER);
+                locationRequest.setNumUpdates(1); // Do just one update before going to sleep
                 break;
             case FAR:
                 locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-                locationRequest.setNumUpdates(1); // Do just one update before going to sleep
+                locationRequest.setNumUpdates(1);
                 break;
             case NEAR:
                 locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
         locationRequest.setInterval(interval);
         locationRequest.setFastestInterval(interval);
+        Log.d("renewLocationRequest", "renewed");
         alarm.setAlarm(this);
     }
 
@@ -688,8 +679,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alarm.releaseWakeLock();
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.GREEN);
-        button.setText("Start");
-        Log.d("stopLocationRequest", "stopped successfully");
+        button.setText("Start tracking");
+        Log.i("stopLocationRequest", "stopped successfully");
     }
 
     public void enableWiFi() {
@@ -761,58 +752,64 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     // Invoked when location change event occurs
     public void onLocationChanged(Location location) {
+        if (getEstimate() == Estimate.DISABLED) {
+            Log.e("onLocationChanged", "Tracking disabled, but onLocationChanged() still called");
+            return;
+        }
         if (location == null) {
-            Toast.makeText(this, "Can't get current location", Toast.LENGTH_LONG).show();
             Log.e("onLocationChanged", "Can't get current location");
             return;
         }
-        Log.d("onLocationChanged", "location  accuracy: " + location.getAccuracy() + "m");
+        if (marker == null) {
+            Log.e("onLocationChanged", "Can't get location marker");
+            return;
+        }
+        double distance = 0;
         double lat = location.getLatitude();
         double lon = location.getLongitude();
-        if (marker != null) {
-            double distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
-            Log.d("onLocationChanged", "distance:" + String.valueOf(distance) + "km");
-            Log.d("onLocationChanged", "maxSpeed:" + String.valueOf(maximumSpeed) + "km/h");
-            // Check if reached destination
-            if (distance <= circle.getRadius() / 1000) {
-                if (!userNotified) {
-                    alarm.acquireLock();
-                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                    v.vibrate(500);
-                    mediaPlayer.start();
-                    showPopup();
-                    userNotified = true;
-                    stopLocationRequest();
-                    notificationManager.cancel(NOTIFICATION_ID);
-                    Log.d("user", "notified");
-                }
-                Log.d("onLocationChanged", "destination reached");
-            } else {
-                // Else set interval for location, depending on distance
-                interval = (long) (3600_000 * distance / maximumSpeed);
-                if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-                switch (getEstimate()) {
-                    case NEAR:
-                        Log.d("onLocationChanged", "is near, wakeLock held");
-                        break;
-                    default:
-                        alarm.releaseWakeLock();
-                        Log.d("onLocationChanged", "is far (or not tracking), wakeLock released");
-                }
+        // FIXME — this is just for testing purposes!!!
+        maximumSpeed = maximumSpeed * 1.1f;
+        alarmRadius = alarmRadius * 1.1f;
+        //
+        distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
+        // Check if reached destination
+        if (distance <= alarmRadius / 1000) {
+            if (!userNotified) {
+                alarm.acquireLock();
+                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                v.vibrate(500);
+                mediaPlayer.start();
+                showPopup();
+                userNotified = true;
+                stopLocationRequest();
+                notificationManager.cancel(NOTIFICATION_ID);
+                Log.d("user", "notified");
             }
+            Log.i("onLocationChanged", "destination reached");
+        } else {
+            // Else set interval for location, depending on distance
+            interval = (long) (3600_000 * distance / maximumSpeed);
+            if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
+            if (getEstimate() == Estimate.FAR)
+                alarm.releaseWakeLock();
         }
+        Log.d("onLocationChanged", "" +
+                "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +
+                "\nalarmRad: " + alarmRadius + "m" +
+                "\ninterval: " + interval + "s" +
+                "\ndistance: " + String.format("%.2f", distance) + "km" +
+                "\naccuracy: " + location.getAccuracy() + "m" +
+                "\nestimate: " + getEstimate());
     }
 
     /**
      * Return enumerated value of estimated distance, based on status and expected traveling time
      */
-    private Estimate getEstimate() {
+    Estimate getEstimate() {
         if (!isTracking)
             return Estimate.DISABLED; // tracking disabled
-        else if (interval > 120_000)  // not tracking or more than 2 minutes
+        else if (interval > 120_000)  // more than 2 minutes for ongoing trackinig
             return Estimate.FAR;
-        else if (interval <= 120_000 && interval > 1_000) // between 1 minute and 1 second
-            return Estimate.NEAR;
-        return Estimate.NEAR; // for new tracking requests
+        return Estimate.NEAR;         // less than 2 minutes for ongoing, or new request
     }
 }

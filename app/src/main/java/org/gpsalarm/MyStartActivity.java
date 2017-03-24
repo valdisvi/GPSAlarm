@@ -1,5 +1,6 @@
 package org.gpsalarm;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,27 +28,30 @@ import org.gpsalarm.R;
  */
 
 public class MyStartActivity extends AppCompatActivity {
-
+    static Context context;
+    final static String FILENAME = "GPSAlarm";
     static MarkerData selectedMarkerData;
+    static ArrayList<MarkerData> markerDataList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        context = this;
         try {
-            MapsActivity.markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, MapsActivity.FILENAME);
+            markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, FILENAME);
         } catch (Exception e) {
             Log.e("MyStartActivity", "onCreate:" + e);
         }
 
-        if (MapsActivity.markerDataList.size() == 0) {
+        if (markerDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);
             startActivity(intent);
         } else {
             setContentView(R.layout.activity_start);
-            final ArrayAdapter myAdapter = new MyCustomizedAdapter(this, MapsActivity.markerDataList);
+            final ArrayAdapter myAdapter = new MyCustomizedAdapter(this, markerDataList);
             ListView listView = (ListView) findViewById(R.id.listView);
 
-            Collections.sort(MapsActivity.markerDataList, new Comparator<MarkerData>() {
+            Collections.sort(markerDataList, new Comparator<MarkerData>() {
 
             /* This comparator will sort MarkerData objects alphabetically. */
 
@@ -67,7 +71,7 @@ public class MyStartActivity extends AppCompatActivity {
                     selectedMarkerData = (MarkerData) myAdapter.getItem(i);
                     Toast.makeText(MyStartActivity.this, "Alarm '" + selectedMarkerData.getName() + "' is set", Toast.LENGTH_LONG).show();
                     Intent myIntent = new Intent(MyStartActivity.this, MapsActivity.class);
-                    Log.d("MyStartActivity",selectedMarkerData.getName() + " is selected");
+                    Log.i("MyStartActivity", selectedMarkerData.getName() + " is selected");
                     startActivity(myIntent);
                 }
             });
@@ -82,7 +86,7 @@ public class MyStartActivity extends AppCompatActivity {
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            MapsActivity.markerDataList.remove(i);
+                            markerDataList.remove(i);
                             myAdapter.notifyDataSetChanged();
                             saveMarkerDataList();
                         }
@@ -102,22 +106,6 @@ public class MyStartActivity extends AppCompatActivity {
 
     }
 
-
-    private boolean saveMarkerDataList() {
-        try {
-            InternalStorage.writeObject(this, MapsActivity.FILENAME, MapsActivity.markerDataList);
-            return true;
-        } catch (IOException e) {
-            Toast.makeText(this, "Failed to save alarm", Toast.LENGTH_SHORT).show();
-            Log.e("IOException", e.getMessage());
-        }
-        return false;
-    }
-
-    public void toMap(@SuppressWarnings("unused") View view) {
-        Intent intent = new Intent(this, MapsActivity.class);
-        startActivity(intent);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -139,6 +127,20 @@ public class MyStartActivity extends AppCompatActivity {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void toMap(@SuppressWarnings("unused") View view) {
+        Intent intent = new Intent(this, MapsActivity.class);
+        startActivity(intent);
+    }
+
+    static void saveMarkerDataList() {
+        try {
+            InternalStorage.writeObject(context, FILENAME, markerDataList);
+        } catch (IOException e) {
+            Toast.makeText(context, "Failed to save alarm", Toast.LENGTH_SHORT).show();
+            Log.e("IOException", e.getMessage());
         }
     }
 

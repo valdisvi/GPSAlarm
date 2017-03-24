@@ -24,15 +24,15 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
     private AlarmManager alarmManager;
     private PendingIntent alarmIntent;
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
+    //@Override
+    public void onReceiveAlt(Context context, Intent intent) {
         ComponentName comp = new ComponentName(context.getPackageName(), TrackerService.class.getName());
         Intent service = new Intent(context, TrackerService.class);
         startWakefulService(context, intent.setComponent(comp));
     }
 
-    //@Override
-    public void onReceivePrev(Context context, Intent intent) {
+    @Override
+    public void onReceive(Context context, Intent intent) {
         Format formatter = new SimpleDateFormat("HH:mm:ss");
         String msg = (formatter.format(new Date()));
         Log.d("onReceive", "time: " + msg);
@@ -50,7 +50,7 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
         setAlarm(MapsActivity.getMapsActivity());
     }
 
-    public void setAlarm(Context context) {
+    public void setAlarmAlt(Context context) {
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, TrackerService.class);
         alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
@@ -66,14 +66,16 @@ public class TrackerAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
 
-    void setAlarmPrev(Context context) {
+    void setAlarm(Context context) {
         if (context instanceof MapsActivity) {
             mapsActivity = (MapsActivity) context;
             Log.d("setAlarm", "mapsActivity is set");
         }
+        else
+            Log.e("setAlarm","context is empty");
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, TrackerAlarmReceiver.class);
-        intent.putExtra(ONE_TIME, Boolean.FALSE);
+        intent.putExtra(ONE_TIME, Boolean.TRUE); // FIXME TRUE, as it is reset in other code
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent, 0);
         am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + MapsActivity.interval, MapsActivity.interval, pi);
         Log.d("TrackerAlarmReceiver", "alarm set to:" + MapsActivity.interval);
