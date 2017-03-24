@@ -73,8 +73,8 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
-    private final static int MY_PERMISSION_FINE_LOCATIONS = 101;
-    private static final int NOTIFICATION_ID = 899068621;
+    final static int MY_PERMISSION_FINE_LOCATIONS = 101;
+    static final int NOTIFICATION_ID = 899068621;
     static String ringtonePath;
     static int maximumSpeed;
     static long interval = 0;                    // interval between tracking requests
