@@ -95,25 +95,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     MediaPlayer mediaPlayer;
     LocationRequest locationRequest;  // variable for requesting location
     TrackerAlarmReceiver alarm;
-    Button closePopUp;
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
-    private PopupWindow popupWindow;
     private LocationManager locationManager;
 
     enum Estimate { // List of travel distance estimation values
         FAR, NEAR, DISABLED;
     }
 
-    private OnClickListener cancel_button_click_listener = new OnClickListener() {
-        public void onClick(View v) {
-            mediaPlayer.pause();
-            clearMarker();
-            userNotified = false;
-            popupWindow.dismiss();
-        }
-    };
 
     static MapsActivity getMapsActivity() {
         return (MapsActivity) context;
@@ -485,30 +475,50 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showPopup() {
-        Log.d("showPopup", "");
-        addNotification("GPS alarm","You have arrived!");
-        LayoutInflater inflater = (LayoutInflater) MapsActivity.this
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = inflater.inflate(R.layout.screen_popup,
-                (ViewGroup) findViewById(R.id.popup_element));
-        popupWindow = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        popupWindow.showAtLocation(layout, Gravity.CENTER, 0, 0);
+        try {
+            Log.d("showPopup", "");
+            addNotification("GPS alarm", "You have arrived!");
+            LayoutInflater inflater = (LayoutInflater) MapsActivity.this
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            final View layout = inflater.inflate(R.layout.screen_popup,
+                    (ViewGroup) findViewById(R.id.popup_element));
+            // Show popup only when activity thread is ready
+            layout.post(new Runnable() {
+                public void run() {
+                    if (!isFinishing()) { // check that activity window is not closing
+                        final PopupWindow popupWindow = new PopupWindow(layout, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true);
+                        popupWindow.showAtLocation(layout, Gravity.CENTER, 0, 0);
+                        popupWindow.setOutsideTouchable(false);   // Set these twho to true, if want to be clickable outside window
+                        popupWindow.setFocusable(false);
+                        // TODO should check, if both handlers are necessary
+                        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                            @Override
+                            public void onDismiss() {
+                                closePopUp(popupWindow);
+                            }
+                        });
+                        final Button closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
+                        closePopUp.setOnClickListener(new View.OnClickListener() {
+                            public void onClick(View v) {
+                                closePopUp(popupWindow);
+                            }
+                        });
+                    }
+                }
+                void closePopUp(PopupWindow popupWindow) {
+                    mediaPlayer.pause();
+                    clearMarker();
+                    userNotified = false;
+                    popupWindow.dismiss();
+                }
+            });
+        } catch (Exception e) {
+            Log.e("showPopUp", "error:" + e.toString());
+        }
 
-        popupWindow.setOutsideTouchable(false);                                         //Dobavlenij kod 16.02.2017
-        popupWindow.setFocusable(false);                             // esli nado 4tob okno zakrivalosj pri kasanii vne ego, udalitj eti dve strochki
+    void closePopup(PopupWindow popup)
 
-        popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {       //Dobavlenij kod 16.02.2017
-            @Override
-            public void onDismiss() {
-                mediaPlayer.pause();
-                clearMarker();
-                userNotified = false;
-                popupWindow.dismiss();
-            }
-        });
-        closePopUp = (Button) layout.findViewById(R.id.btn_close_popup);
-        closePopUp.setOnClickListener(cancel_button_click_listener);
-    }
+}
 
     public void changeMapType(String type) {
         switch (type) {
@@ -632,7 +642,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userNotified = false;
         checkGPS();
         renewLocationRequest();
-        addNotification("GPS alarm","Tracking is started");
+        addNotification("GPS alarm", "Tracking is started");
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
