@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+/**
+ * This class is used to read/write objects into persistent store
+ */
 final class InternalStorage {
-
-    private InternalStorage() {
-    }
-
+    
     public static void writeObject(Context context, String key, Object object) throws IOException {
         FileOutputStream fos = context.openFileOutput(key, Context.MODE_PRIVATE);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
