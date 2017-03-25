@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import org.gpsalarm.R;
 
 
-public class MyHelpActivity extends AppCompatActivity {
+public class HelpActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

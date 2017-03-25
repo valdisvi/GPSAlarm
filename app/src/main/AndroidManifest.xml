@@ -44,20 +44,20 @@
         </activity>
 
         <activity
-            android:name="org.gpsalarm.MyStartActivity"
+            android:name="org.gpsalarm.StartActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" />
 
         <activity
             android:name="org.gpsalarm.MapsActivity"
-            android:parentActivityName="org.gpsalarm.MyStartActivity" />
+            android:parentActivityName="org.gpsalarm.StartActivity" />
 
         <activity
-            android:name="org.gpsalarm.MyPreferencesActivity"
+            android:name="org.gpsalarm.PreferencesActivity"
             android:label="Settings"
             android:parentActivityName="org.gpsalarm.MapsActivity" />
         <activity
-            android:name="org.gpsalarm.MyHelpActivity"
+            android:name="org.gpsalarm.HelpActivity"
             android:label="Help"
             android:parentActivityName="org.gpsalarm.MapsActivity" />
 

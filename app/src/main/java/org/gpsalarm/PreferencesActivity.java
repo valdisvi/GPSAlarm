@@ -8,7 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import org.gpsalarm.R;
 
-public class MyPreferencesActivity extends AppCompatActivity {
+public class PreferencesActivity extends AppCompatActivity {
 
 
     @Override

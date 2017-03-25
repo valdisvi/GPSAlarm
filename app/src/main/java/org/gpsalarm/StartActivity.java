@@ -20,14 +20,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-
-import org.gpsalarm.R;
-
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
  */
 
-public class MyStartActivity extends AppCompatActivity {
+public class StartActivity extends AppCompatActivity {
     static Context context;
     final static String FILENAME = "GPSAlarm";
     static MarkerData selectedMarkerData;
@@ -40,7 +37,7 @@ public class MyStartActivity extends AppCompatActivity {
         try {
             markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, FILENAME);
         } catch (Exception e) {
-            Log.e("MyStartActivity", "onCreate:" + e);
+            Log.e("StartActivity", "onCreate:" + e);
         }
 
         if (markerDataList.size() == 0) {
@@ -48,7 +45,7 @@ public class MyStartActivity extends AppCompatActivity {
             startActivity(intent);
         } else {
             setContentView(R.layout.activity_start);
-            final ArrayAdapter myAdapter = new MyCustomizedAdapter(this, markerDataList);
+            final ArrayAdapter myAdapter = new CustomAdapter(this, markerDataList);
             ListView listView = (ListView) findViewById(R.id.listView);
 
             Collections.sort(markerDataList, new Comparator<MarkerData>() {
@@ -68,9 +65,9 @@ public class MyStartActivity extends AppCompatActivity {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     selectedMarkerData = (MarkerData) myAdapter.getItem(i);
-                    Toast.makeText(MyStartActivity.this, "Alarm '" + selectedMarkerData.getName() + "' is set", Toast.LENGTH_LONG).show();
-                    Intent myIntent = new Intent(MyStartActivity.this, MapsActivity.class);
-                    Log.i("MyStartActivity", selectedMarkerData.getName() + " is selected");
+                    Toast.makeText(StartActivity.this, "Alarm '" + selectedMarkerData.getName() + "' is set", Toast.LENGTH_LONG).show();
+                    Intent myIntent = new Intent(StartActivity.this, MapsActivity.class);
+                    Log.i("StartActivity", selectedMarkerData.getName() + " is selected");
                     startActivity(myIntent);
                 }
             });
@@ -78,7 +75,7 @@ public class MyStartActivity extends AppCompatActivity {
             myListView2.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(MyStartActivity.this);
+                    AlertDialog.Builder alert = new AlertDialog.Builder(StartActivity.this);
                     alert.setMessage("Are you sure you want to delete this?");
                     alert.setCancelable(false);
                     alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -118,11 +115,11 @@ public class MyStartActivity extends AppCompatActivity {
         Intent intent;
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
-                intent = new Intent(this, MyPreferencesActivity.class);
+                intent = new Intent(this, PreferencesActivity.class);
                 context.startActivity(intent);
                 return true;
             case R.id.menuItemHelp:
-                intent = new Intent(this, MyHelpActivity.class);
+                intent = new Intent(this, HelpActivity.class);
                 context.startActivity(intent);
                 return true;
             default:

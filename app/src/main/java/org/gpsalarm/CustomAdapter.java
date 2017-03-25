@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import org.gpsalarm.R;
 
 
-class MyCustomizedAdapter extends ArrayAdapter<MarkerData> {
+class CustomAdapter extends ArrayAdapter<MarkerData> {
 
-    public MyCustomizedAdapter(Context context, ArrayList<MarkerData> markerDataArrayList) {
+    public CustomAdapter(Context context, ArrayList<MarkerData> markerDataArrayList) {
         super(context, R.layout.row_layout, markerDataArrayList);
     }
 

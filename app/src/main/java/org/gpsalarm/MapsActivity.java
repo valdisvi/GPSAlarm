@@ -34,7 +34,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -66,15 +65,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import static org.gpsalarm.MyStartActivity.FILENAME;
-import static org.gpsalarm.MyStartActivity.markerDataList;
-import static org.gpsalarm.MyStartActivity.saveMarkerDataList;
+import static org.gpsalarm.StartActivity.FILENAME;
+import static org.gpsalarm.StartActivity.markerDataList;
+import static org.gpsalarm.StartActivity.saveMarkerDataList;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
-import static org.gpsalarm.InternalStorage.readObject;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
@@ -292,8 +290,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
             googleApiClient.connect();
             zoom(15, 90, 40);
-            if (MyStartActivity.selectedMarkerData != null && MyStartActivity.selectedMarkerData.isReal()) {
-                setMarker(MyStartActivity.selectedMarkerData.getLatitude(), MyStartActivity.selectedMarkerData.getLongitude());
+            if (StartActivity.selectedMarkerData != null && StartActivity.selectedMarkerData.isReal()) {
+                setMarker(StartActivity.selectedMarkerData.getLatitude(), StartActivity.selectedMarkerData.getLongitude());
             }
             centerMap();
         } else {
@@ -399,11 +397,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Intent intent;
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
-                intent = new Intent(this, MyPreferencesActivity.class);
+                intent = new Intent(this, PreferencesActivity.class);
                 startActivity(intent);
                 return true;
             case R.id.menuItemHelp:
-                intent = new Intent(this, MyHelpActivity.class);
+                intent = new Intent(this, HelpActivity.class);
                 startActivity(intent);
                 return true;
             default:
@@ -469,8 +467,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setMarkerData() {
         if (marker != null) {
-            MyStartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
-            MyStartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
+            StartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
+            StartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
         }
     }
 
@@ -515,10 +513,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (Exception e) {
             Log.e("showPopUp", "error:" + e.toString());
         }
-
-    void closePopup(PopupWindow popup)
-
-}
+    }
 
     public void changeMapType(String type) {
         switch (type) {
