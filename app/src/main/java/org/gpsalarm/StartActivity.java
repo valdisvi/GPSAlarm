@@ -106,7 +106,7 @@ public class StartActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             locationDataList.remove(i);
                             myAdapter.notifyDataSetChanged();
-                            saveMarkerDataList();
+                            saveLocationDataList();
                         }
                     });
                     alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -155,7 +155,7 @@ public class StartActivity extends AppCompatActivity {
     }
 
     // TODO should be either read/write or save/load
-    static void saveMarkerDataList() {
+    static void saveLocationDataList() {
         try {
             InternalStorage.writeObject(context, FILENAME, locationDataList);
         } catch (IOException e) {

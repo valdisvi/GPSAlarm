@@ -68,7 +68,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import static org.gpsalarm.StartActivity.FILENAME;
 import static org.gpsalarm.StartActivity.locationDataList;
-import static org.gpsalarm.StartActivity.saveMarkerDataList;
+import static org.gpsalarm.StartActivity.saveLocationDataList;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -444,7 +444,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return;
                             }
                         }
-                        addMarkerDataToList(name, MapsActivity.marker);
+                        addLocationDataToList(name, MapsActivity.marker);
                         MapsActivity.this.marker.hideInfoWindow();
                     }
                 });
@@ -475,7 +475,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return results[0] / 1000;
     }
 
-    private void setMarkerData() {
+    private void setLocationData() {
         if (marker != null) {
             StartActivity.selectedLocationData.setLatitude(marker.getPosition().latitude);
             StartActivity.selectedLocationData.setLongitude(marker.getPosition().longitude);
@@ -554,13 +554,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mediaPlayer = MediaPlayer.create(this, Uri.parse(ringtonePath));
     }
 
-    public void addMarkerDataToList(String name, Marker marker) {
+    public void addLocationDataToList(String name, Marker marker) {
         LocationData toBeAdded = new LocationData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
         toBeAdded.setLongitude(marker.getPosition().longitude);
         locationDataList.add(toBeAdded);
-        saveMarkerDataList();
+        saveLocationDataList();
     }
 
 
