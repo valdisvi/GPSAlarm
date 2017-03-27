@@ -33,7 +33,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver android:name="org.gpsalarm.TrackerAlarmReceiver" />
+        <receiver android:name="org.gpsalarm.AlarmReceiver" />
 
         <activity
             android:name="org.gpsalarm.StartActivity"

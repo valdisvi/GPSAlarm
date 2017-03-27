@@ -49,6 +49,7 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
@@ -74,25 +75,27 @@ import java.util.ArrayList;
 
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, LocationListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+        GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
-    final static int MY_PERMISSION_FINE_LOCATIONS = 101;
+    final static int MY_PERMISSION_FINE_LOCATIONS = 101; // FIXME rename without my..
     final static int NOTIFICATION_ID = 899068621;
     static String ringtonePath;
-    float maximumSpeed; // FIXME set to nonstatic int
+    static float maximumSpeed; // FIXME set to nonstatic int
     static long interval = 0;                    // interval between tracking requests
     static private boolean userNotified = false; // is user notified about arrival
     static private boolean isTracking = true;    // is tracking going on
     static private boolean checkedWiFi = false;  // is WiFi connection suggested
+    //static boolean handleLocationChanged; // FIXME just for testing, remove later
     static Context context;
     static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
     Circle circle;
-    float alarmRadius;    // FIXME set to nonstatic int Used by markers. Can now be set through preferences.
+    static float alarmRadius;    // FIXME set to nonstatic int Used by markers. Can now be set through preferences.
     MediaPlayer mediaPlayer;
     LocationRequest locationRequest;  // variable for requesting location
-    TrackerAlarmReceiver alarm;
+    AlarmReceiver alarm;
     WifiManager wifiManager;
     LatLng addressGeo;
     String addressName;
@@ -118,7 +121,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // geoLocate(null);
 
         // Manage wake up alerts
-        alarm = new TrackerAlarmReceiver();
+        interval = 1000;
+        alarm = new AlarmReceiver();
+        //alarm.onReceive(this, new Intent());
+        alarm.setAlarm(this, (int) interval); // FIXME should be simple integer
 
         checkGPS();
         checkAndConnect();
@@ -503,6 +509,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         });
                     }
                 }
+
                 void closePopUp(PopupWindow popupWindow) {
                     mediaPlayer.pause();
                     clearMarker();
@@ -618,7 +625,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void stopTrackingBut(@SuppressWarnings("unused") View view) {
         // Reinitialize alarm time
-        alarm = new TrackerAlarmReceiver();
+        alarm = new AlarmReceiver();
         if (isTracking) {
             // TODO should disable Pause/Start buttons when arrived
             stopLocationRequest();
@@ -647,6 +654,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void renewLocationRequest() {
+        readInterval();
         locationRequest = new LocationRequest();
         switch (getEstimate()) {
             case DISABLED:
@@ -662,8 +670,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         locationRequest.setInterval(interval);
         locationRequest.setFastestInterval(interval);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        //Set new schedules for alarm
+        AlarmReceiver alarmReceiver = new AlarmReceiver();
+        alarmReceiver.setAlarm(this, (int) interval); // FIXME should be simple int
         Log.d("renewLocationRequest", "renewed");
-        alarm.setAlarm(this);
     }
 
     void stopLocationRequest() {
@@ -673,7 +685,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         locationRequest = null;
         isTracking = false;
-        alarm.cancelAlarm(this);
+        //alarm.cancelAlarm(this);
         alarm.releaseWakeLock();
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.GREEN);
@@ -749,14 +761,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lat = location.getLatitude();
         double lon = location.getLongitude();
         // FIXME — this is just for testing purposes!!!
-        maximumSpeed = maximumSpeed * 1.1f;
-        alarmRadius = alarmRadius * 1.1f;
+        // maximumSpeed = maximumSpeed * 1.1f;
+        // alarmRadius = alarmRadius * 1.1f;
         //
         distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
         // Check if reached destination
         if (distance <= alarmRadius / 1000) {
             if (!userNotified) {
-                alarm.acquireLock();
+                //  lock is aquired in AlarmReceiver
+                // alarm.acquireLock();
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
                 mediaPlayer.start();
@@ -773,8 +786,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Else set interval for location, depending on distance
             interval = (long) (3600_000 * distance / maximumSpeed);
             if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-            if (getEstimate() == Estimate.FAR)
+            writeInterval(); // TODO should save only if changed
+            if (getEstimate() == Estimate.FAR) {
                 alarm.releaseWakeLock();
+                Log.d("onLocationChanged", "releaseWakeLock() called");
+            }
         }
         Log.d("onLocationChanged", "" +
                 "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +
@@ -795,4 +811,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return Estimate.FAR;
         return Estimate.NEAR;         // less than 2 minutes for ongoing, or new request
     }
+
+    static void writeInterval() {
+        try {
+            InternalStorage.writeObject(context, "interval", interval);
+        } catch (Exception e) {
+            Log.e("IOException", e.getMessage());
+        }
+        Log.d("writeInterval", "" + interval);
+    }
+
+    static void readInterval() {
+        try {
+            interval = (Integer) InternalStorage.readObject(context, "interval");
+        } catch (Exception e) {
+            Log.e("IOException", e.getMessage());
+        }
+        Log.d("readInterval", "" + interval);
+    }
+
+    Location getLastLocation() {
+        Location location = null;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Criteria criteria = new Criteria();
+            location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true));
+        }
+        return location;
+    }
+
 }

@@ -13,7 +13,7 @@ import java.io.ObjectOutputStream;
  * This class is used to read/write objects into persistent store
  */
 final class InternalStorage {
-    
+
     public static void writeObject(Context context, String key, Object object) throws IOException {
         FileOutputStream fos = context.openFileOutput(key, Context.MODE_PRIVATE);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
