@@ -31,13 +31,13 @@ import java.util.Comparator;
 public class StartActivity extends AppCompatActivity {
     static Context context;
     final static String FILENAME = "GPSAlarm";
-    static MarkerData selectedMarkerData;
-    static ArrayList<MarkerData> markerDataList = new ArrayList<>();
+    static LocationData selectedLocationData;
+    static ArrayList<LocationData> locationDataList = new ArrayList<>();
 
 
-    class CustomAdapter extends ArrayAdapter<MarkerData> {
-        public CustomAdapter(Context context, ArrayList<MarkerData> markerDataArrayList) {
-            super(context, R.layout.row_layout, markerDataArrayList);
+    class CustomAdapter extends ArrayAdapter<LocationData> {
+        public CustomAdapter(Context context, ArrayList<LocationData> locationDataArrayList) {
+            super(context, R.layout.row_layout, locationDataArrayList);
         }
 
         @NonNull
@@ -57,24 +57,24 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         context = this;
         try {
-            markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, FILENAME);
+            locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, FILENAME);
         } catch (Exception e) {
             Log.e("StartActivity", "onCreate:" + e);
         }
 
-        if (markerDataList.size() == 0) {
+        if (locationDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);
             startActivity(intent);
         } else {
             setContentView(R.layout.activity_start);
-            final ArrayAdapter myAdapter = new CustomAdapter(this, markerDataList);
+            final ArrayAdapter myAdapter = new CustomAdapter(this, locationDataList);
             ListView listView = (ListView) findViewById(R.id.listView);
 
-            Collections.sort(markerDataList, new Comparator<MarkerData>() {
+            Collections.sort(locationDataList, new Comparator<LocationData>() {
 
-                /* This comparator sorts MarkerData objects alphabetically. */
+                /* This comparator sorts LocationData objects alphabetically. */
                 @Override
-                public int compare(MarkerData a1, MarkerData a2) {
+                public int compare(LocationData a1, LocationData a2) {
                     // String implements Comparable
                     return (a1.getName()).compareTo(a2.getName());
                 }
@@ -86,10 +86,10 @@ public class StartActivity extends AppCompatActivity {
             myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02,2017
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    selectedMarkerData = (MarkerData) myAdapter.getItem(i);
-                    Toast.makeText(StartActivity.this, "Alarm '" + selectedMarkerData.getName() + "' is set", Toast.LENGTH_LONG).show();
+                    selectedLocationData = (LocationData) myAdapter.getItem(i);
+                    Toast.makeText(StartActivity.this, "Alarm '" + selectedLocationData.getName() + "' is set", Toast.LENGTH_LONG).show();
                     Intent myIntent = new Intent(StartActivity.this, MapsActivity.class);
-                    Log.i("StartActivity", selectedMarkerData.getName() + " is selected");
+                    Log.i("StartActivity", selectedLocationData.getName() + " is selected");
                     startActivity(myIntent);
                 }
             });
@@ -104,7 +104,7 @@ public class StartActivity extends AppCompatActivity {
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            markerDataList.remove(i);
+                            locationDataList.remove(i);
                             myAdapter.notifyDataSetChanged();
                             saveMarkerDataList();
                         }
@@ -157,7 +157,7 @@ public class StartActivity extends AppCompatActivity {
     // TODO should be either read/write or save/load
     static void saveMarkerDataList() {
         try {
-            InternalStorage.writeObject(context, FILENAME, markerDataList);
+            InternalStorage.writeObject(context, FILENAME, locationDataList);
         } catch (IOException e) {
             Toast.makeText(context, "Failed to save alarm", Toast.LENGTH_SHORT).show();
             Log.e("IOException", e.getMessage());

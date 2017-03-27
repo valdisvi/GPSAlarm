@@ -67,7 +67,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import static org.gpsalarm.StartActivity.FILENAME;
-import static org.gpsalarm.StartActivity.markerDataList;
+import static org.gpsalarm.StartActivity.locationDataList;
 import static org.gpsalarm.StartActivity.saveMarkerDataList;
 
 import java.io.IOException;
@@ -160,7 +160,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
 
             try {
-                markerDataList = (ArrayList<MarkerData>) InternalStorage.readObject(this, FILENAME); // Retrieve the list from internal storage
+                locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, FILENAME); // Retrieve the list from internal storage
             } catch (IOException e) {
                 Log.e("File Read error: ", e.getMessage());
             } catch (ClassNotFoundException e) {
@@ -296,8 +296,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
             googleApiClient.connect();
             zoom(15, 90, 40);
-            if (StartActivity.selectedMarkerData != null && StartActivity.selectedMarkerData.isReal()) {
-                setMarker(StartActivity.selectedMarkerData.getLatitude(), StartActivity.selectedMarkerData.getLongitude());
+            if (StartActivity.selectedLocationData != null && StartActivity.selectedLocationData.isReal()) {
+                setMarker(StartActivity.selectedLocationData.getLatitude(), StartActivity.selectedLocationData.getLongitude());
             }
             centerMap();
         } else {
@@ -438,8 +438,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             return;
                         }
 
-                        for (MarkerData markerData : markerDataList) {
-                            if (markerData.getName().equals(name)) {
+                        for (LocationData locationData : locationDataList) {
+                            if (locationData.getName().equals(name)) {
                                 Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
                                 return;
                             }
@@ -477,8 +477,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setMarkerData() {
         if (marker != null) {
-            StartActivity.selectedMarkerData.setLatitude(marker.getPosition().latitude);
-            StartActivity.selectedMarkerData.setLongitude(marker.getPosition().longitude);
+            StartActivity.selectedLocationData.setLatitude(marker.getPosition().latitude);
+            StartActivity.selectedLocationData.setLongitude(marker.getPosition().longitude);
         }
     }
 
@@ -555,11 +555,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addMarkerDataToList(String name, Marker marker) {
-        MarkerData toBeAdded = new MarkerData();
+        LocationData toBeAdded = new LocationData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
         toBeAdded.setLongitude(marker.getPosition().longitude);
-        markerDataList.add(toBeAdded);
+        locationDataList.add(toBeAdded);
         saveMarkerDataList();
     }
 
@@ -680,6 +680,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         AlarmReceiver alarmReceiver = new AlarmReceiver();
         alarmReceiver.setAlarm(this, (int) interval); // FIXME should be simple int
         Log.d("renewLocationRequest", "renewed");
+        hanldleLastLocation();
     }
 
     void stopLocationRequest() {
@@ -761,48 +762,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("onLocationChanged", "Can't get location marker");
             return;
         }
-        double distance = 0;
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        // FIXME — this is just for testing purposes!!!
-        // maximumSpeed = maximumSpeed * 1.1f;
-        // alarmRadius = alarmRadius * 1.1f;
-        //
-        distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
-        // Check if reached destination
-        if (distance <= alarmRadius / 1000) {
-            if (!userNotified) {
-                //  lock is aquired in AlarmReceiver
-                // alarm.acquireLock();
-                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
-                mediaPlayer.start();
-                showPopup();
-                userNotified = true;
-                stopLocationRequest();
-                NotificationManager notificationManager =
-                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.cancel(NOTIFICATION_ID);
-                Log.d("user", "notified");
-            }
-            Log.i("onLocationChanged", "destination reached");
-        } else {
-            // Else set interval for location, depending on distance
-            interval = (long) (3600_000 * distance / maximumSpeed);
-            if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-            writeInterval(); // TODO should save only if changed
-            if (getEstimate() == Estimate.FAR) {
-                alarm.releaseWakeLock();
-                Log.d("onLocationChanged", "releaseWakeLock() called");
-            }
-        }
-        Log.d("onLocationChanged", "" +
-                "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +
-                "\nalarmRad: " + alarmRadius + "m" +
-                "\ninterval: " + interval + "s" +
-                "\ndistance: " + String.format("%.2f", distance) + "km" +
-                "\naccuracy: " + location.getAccuracy() + "m" +
-                "\nestimate: " + getEstimate());
+        writeLocation(location);
+        Log.d("onLocationChanged", "location:" + location);
     }
 
     /**
@@ -834,14 +795,70 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d("readInterval", "" + interval);
     }
 
-    Location getLastLocation() {
+    void writeLocation(Location location) {
+        try {
+            InternalStorage.writeObject(context, "location", location);
+        } catch (Exception e) {
+            Log.e("IOException", e.getMessage());
+        }
+        Log.d("writeLocation", "" + location);
+    }
+
+    Location readLocation() {
         Location location = null;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Criteria criteria = new Criteria();
-            location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true));
+        try {
+            location = (Location) InternalStorage.readObject(context, "location");
+            Log.d("readLocation", "" + location);
+        } catch (Exception e) {
+            Log.e("IOException", e.getMessage());
         }
         return location;
+    }
+
+    void hanldleLastLocation() {
+        Location location = readLocation();
+        if (location == null) {
+            Log.e("handleLastLocation", "location is null");
+            return;
+        }
+        double distance = 0;
+        double lat = location.getLatitude();
+        double lon = location.getLongitude();
+        distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
+        // Check if reached destination
+        if (distance <= alarmRadius / 1000) {
+            if (!userNotified) {
+                //  lock is aquired in AlarmReceiver
+                // alarm.acquireLock();
+                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                v.vibrate(500);
+                mediaPlayer.start();
+                showPopup();
+                userNotified = true;
+                stopLocationRequest();
+                NotificationManager notificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManager.cancel(NOTIFICATION_ID);
+                Log.d("user", "notified");
+            }
+            Log.i("hanldleLastLocation", "destination reached");
+        } else {
+            // Else set interval for location, depending on distance
+            interval = (long) (3600_000 * distance / maximumSpeed);
+            if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
+            writeInterval(); // TODO should save only if changed
+            if (getEstimate() == Estimate.FAR) {
+                alarm.releaseWakeLock();
+                Log.d("hanldleLastLocation", "releaseWakeLock() called");
+            }
+        }
+        Log.d("hanldleLastLocation", "" +
+                "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +
+                "\nalarmRad: " + alarmRadius + "m" +
+                "\ninterval: " + interval + "s" +
+                "\ndistance: " + String.format("%.2f", distance) + "km" +
+                "\naccuracy: " + location.getAccuracy() + "m" +
+                "\nestimate: " + getEstimate());
     }
 
 }
