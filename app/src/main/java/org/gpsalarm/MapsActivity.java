@@ -386,10 +386,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void clearMarker() {
-        if (marker != null)
+        if (marker != null) {
+            marker.remove(); // remove from form
             marker = null;
-        if (circle != null)
+        }
+        if (circle != null) {
+            circle.remove();
             circle = null;
+        }
     }
 
     @Override
