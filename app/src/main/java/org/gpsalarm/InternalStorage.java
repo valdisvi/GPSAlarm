@@ -107,6 +107,7 @@ final class InternalStorage extends Application {
             location.setProvider(locationData.name);
             location.setLatitude(locationData.latitude);
             location.setLongitude(locationData.longitude);
+            location.setAccuracy(locationData.accuracy);
         } else
             Log.w("readLocation", "Empty location was created");
         Log.d("readLocation", "location:" + location);
@@ -117,6 +118,7 @@ final class InternalStorage extends Application {
         LocationData data = new LocationData(location.getProvider());
         data.setLatitude(location.getLatitude());
         data.setLongitude(location.getLongitude());
+        data.setAccuracy(location.getAccuracy());
         writeLocationData(data);
         Log.d("writeLocation", "writeLocation:" + location);
     }

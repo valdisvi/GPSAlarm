@@ -450,10 +450,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
     }
 
+    /**
+     * @param location1 — Location1
+     * @param location2 — Location2
+     * @return — distance between locations in meters
+     */
+    double haversine(Location location1, Location location2) {
+        return haversine(location1.getLatitude(), location1.getLongitude(), location2.getLatitude(), location2.getLongitude());
+    }
+
+    /**
+     * @param lat1 — latitude of point1
+     * @param lon1 — longitude of poin1
+     * @param lat2 — latitude of point2
+     * @param lon2 — longitude of point2
+     * @return — distance in meters between two points
+     */
     double haversine(double lat1, double lon1, double lat2, double lon2) {
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
-        return results[0] / 1000;
+        Log.d("haversine", "distance: " + results[0]);
+        return results[0];
     }
 
     // FIXME this method should be removed after code optimization
@@ -636,15 +653,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     void startLocationRequest() {
         isTracking = true;
         userNotified = false;
+        interval = 0;
         checkGPS();
         renewLocationRequest();
+        internalStorage.writeInterval(interval);
         addNotification("GPS alarm", "Tracking is started");
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
-        Log.d("startLocationRequest", "" +
-                "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
-                "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
+        if (locationRequest != null) // TODO should check why it happens
+            Log.d("startLocationRequest", "" +
+                    "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
+                    "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
     }
 
     void renewLocationRequest() {
@@ -752,8 +772,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("onLocationChanged", "Tracking disabled, but onLocationChanged() still called");
             return;
         }
-        internalStorage.writeLocation(location);
-        Log.d("onLocationChanged", "locationData:" + location);
+
+        // Write new location:
+        // 1. If there was real movement
+        // 2. If better accuracy was met
+        Location prevLocation = internalStorage.readLocation();
+        if ((haversine(prevLocation, location) > location.getAccuracy()) ||
+                (location.getAccuracy() < prevLocation.getAccuracy()))
+            internalStorage.writeLocation(location);
+        Log.d("onLocationChanged", "location:" + location);
     }
 
     /**
@@ -783,7 +810,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         double lon = location.getLongitude();
         distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
         // Check if reached destination
-        if (distance <= alarmRadius / 1000) {
+        if (distance <= alarmRadius) {
             if (!userNotified) {
                 //  lock is aquired in AlarmReceiver
                 // alarm.acquireLock();
@@ -801,7 +828,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.i("hanldleLastLocation", "destination reached");
         } else {
             // Else set interval for location, depending on distance
-            interval = (int) (3600_000 * distance / maximumSpeed);
+            interval = (int) (3600 * distance / maximumSpeed); // distance is in m, but speed in km
             if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
             internalStorage.writeInterval(interval);
         }
