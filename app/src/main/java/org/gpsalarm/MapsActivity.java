@@ -25,7 +25,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.util.ArrayMap;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -75,7 +74,7 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnInfoWindowClickListener, LocationListener {
     //Date date = new Date(2020, 12, 24);
-    final static int MY_PERMISSION_FINE_LOCATIONS = 101; // FIXME rename without my..
+    final static int PERMISSION_FINE_LOCATIONS = 101;
     final static int NOTIFICATION_ID = 899068621;
     final static String TAG = "MapsActivity";
     static String ringtonePath;
@@ -287,7 +286,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             centerMap();
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_FINE_LOCATIONS);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATIONS);
             }
         }
     }
@@ -563,7 +562,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case MY_PERMISSION_FINE_LOCATIONS:
+            case PERMISSION_FINE_LOCATIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                         googleMap.setMyLocationEnabled(true);
