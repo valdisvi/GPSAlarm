@@ -65,7 +65,6 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import static org.gpsalarm.StartActivity.selectedLocationData; // FIXME should use Intent extras
 
 import java.util.ArrayList;
 
@@ -98,6 +97,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String addressName;
     InternalStorage internalStorage;
     ArrayList<LocationData> locationDataList;
+    LocationData selectedLocationData;
     private LocationManager locationManager;
 
     enum Estimate { // List of travel distance estimation values
@@ -111,10 +111,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setInternalStorage();
 
-
-        // Reset marker
-        // FIXME this makes addressName to null, should be deleted
-        // geoLocate(null);
+        // Read selected location from Extra of passed intent
+        selectedLocationData = (LocationData) getIntent().getSerializableExtra(InternalStorage.SEL_LOC_DATA_KEY);
 
         // Manage wake up alerts
         interval = 1000;

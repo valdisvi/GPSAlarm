@@ -14,8 +14,10 @@ import java.util.ArrayList;
 
 /**
  * This class is used to read/write objects into persistent store
+ * It extends Application to be sure it is always loaded first and
  */
 final class InternalStorage extends Application {
+    static String SEL_LOC_DATA_KEY = "selectedLocationData";
     private final String LOCATION_DATA_LIST = "locationDataList";
     private final String INTERVAL = "interval";
     private final String LOCATION_DATA = "locationData";

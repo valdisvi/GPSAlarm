@@ -23,14 +23,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
  */
 
 public class StartActivity extends AppCompatActivity {
-    final  String TAG = "StartActivity";
-    static  LocationData selectedLocationData;
+    final String TAG = "StartActivity";
+    LocationData selectedLocationData;
     ArrayList<LocationData> locationDataList = new ArrayList<>();
     InternalStorage internalStorage;
 
@@ -54,19 +53,13 @@ public class StartActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG,"onCreate started");
+        Log.d(TAG, "onCreate started");
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
+        
         locationDataList = internalStorage.readLocationDataList();
-        /*
-        try {
-            locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, "locationDataList");
-        } catch (Exception e) {
-            Log.e("StartActivity", "locationDataList readObject:" + e);
-        }
-        */
-        Log.d(TAG,"onCreate, locationDataList" + locationDataList);
+        Log.d(TAG, "onCreate, locationDataList" + locationDataList);
 
         if (locationDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);
@@ -95,6 +88,7 @@ public class StartActivity extends AppCompatActivity {
                     selectedLocationData = (LocationData) myAdapter.getItem(i);
                     Toast.makeText(StartActivity.this, "Alarm '" + selectedLocationData.getName() + "' is set", Toast.LENGTH_LONG).show();
                     Intent myIntent = new Intent(StartActivity.this, MapsActivity.class);
+                    myIntent.putExtra(InternalStorage.SEL_LOC_DATA_KEY, selectedLocationData);
                     Log.i("StartActivity", selectedLocationData.getName() + " is selected");
                     startActivity(myIntent);
                 }
