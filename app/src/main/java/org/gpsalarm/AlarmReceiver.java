@@ -18,18 +18,15 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d(TAG, "OnReceive called...");
-        PowerManager powerManager;
-        powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                "test.org.alarmtest");
-        //acquireLock();
-        // TODO alarmActivity.doWork();
-        wakeLock.acquire();
-        if (mapsActivity != null)
+        if (mapsActivity != null && mapsActivity.getEstimate() != MapsActivity.Estimate.DISABLED) {
+            Log.d(TAG, "OnReceive called...");
+            PowerManager powerManager;
+            powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "org.gpsalarm");
+            acquireLock();
             mapsActivity.renewLocationRequest();
-        wakeLock.release();
-        //releaseWakeLock();
+            releaseWakeLock();
+        }
     }
 
     public void setAlarm(Context context, int interval) {
@@ -44,45 +41,20 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     void acquireLock() {
-        /*
-        //Acquire the lock, if not still held
+        //Acquire the lock, if not still hold
         if (wakeLock != null && !wakeLock.isHeld()) {
             wakeLock.acquire();
-            saveWakeLock();
             Log.d(TAG, "lock acquired");
         }
-        */
     }
 
     void releaseWakeLock() {
-        /*
+        // Release lock if is hold
         Log.d(TAG, "releaseWakeLock");
-        loadWakeLock();
-        //Release the lock
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
             Log.d(TAG, "lock released");
         }
         Log.d(TAG, "lock is empty or not held");
-        */
-    }
-
-    void saveWakeLock() {
-        try {
-            InternalStorage.writeObject(mapsActivity, "wakeLock", wakeLock);
-        } catch (Exception e) {
-            Log.e("IOException", e.getMessage());
-        }
-        Log.d("saveWakeLock", "saveWakeLock" + wakeLock);
-
-    }
-
-    void loadWakeLock() {
-        try {
-            wakeLock = (WakeLock) InternalStorage.readObject(mapsActivity, "wakeLock");
-        } catch (Exception e) {
-            Log.e("IOException", e.getMessage());
-        }
-        Log.d("loadWakeLock", "saveWakeLock" + wakeLock);
     }
 }

@@ -3,7 +3,6 @@ package org.gpsalarm;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -20,23 +19,20 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import static org.gpsalarm.InternalStorage.readLocationDataList;
-import static org.gpsalarm.InternalStorage.writeLocationDataList;
 
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
  */
 
 public class StartActivity extends AppCompatActivity {
-    static final  String TAG = "StartActivity";
-    static Context context;
-    static LocationData selectedLocationData;
-    static ArrayList<LocationData> locationDataList = new ArrayList<>();
+    final  String TAG = "StartActivity";
+    LocationData selectedLocationData;
+    ArrayList<LocationData> locationDataList = new ArrayList<>();
+    InternalStorage internalStorage;
 
     // This class is used to provide alphabetic sorting for LocationData list
     class CustomAdapter extends ArrayAdapter<LocationData> {
@@ -60,8 +56,9 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG,"onCreate started");
         super.onCreate(savedInstanceState);
-        InternalStorage.context = this;
-        locationDataList = readLocationDataList();
+        internalStorage = new InternalStorage();
+        internalStorage.setContext(this);
+        locationDataList = internalStorage.readLocationDataList();
         /*
         try {
             locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, "locationDataList");
@@ -115,7 +112,7 @@ public class StartActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             locationDataList.remove(i);
                             myAdapter.notifyDataSetChanged();
-                            writeLocationDataList(locationDataList);
+                            internalStorage.writeLocationDataList(locationDataList);
                         }
                     });
                     alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -147,11 +144,11 @@ public class StartActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.menuItemSettings:
                 intent = new Intent(this, PreferencesActivity.class);
-                context.startActivity(intent);
+                this.startActivity(intent);
                 return true;
             case R.id.menuItemHelp:
                 intent = new Intent(this, HelpActivity.class);
-                context.startActivity(intent);
+                this.startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
