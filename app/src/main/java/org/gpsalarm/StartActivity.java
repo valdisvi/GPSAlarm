@@ -3,6 +3,7 @@ package org.gpsalarm;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -24,17 +25,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
+import static org.gpsalarm.InternalStorage.readLocationDataList;
+import static org.gpsalarm.InternalStorage.writeLocationDataList;
+
 /**
  * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
  */
 
 public class StartActivity extends AppCompatActivity {
+    static final  String TAG = "StartActivity";
     static Context context;
-    final static String FILENAME = "GPSAlarm";
     static LocationData selectedLocationData;
     static ArrayList<LocationData> locationDataList = new ArrayList<>();
 
-
+    // This class is used to provide alphabetic sorting for LocationData list
     class CustomAdapter extends ArrayAdapter<LocationData> {
         public CustomAdapter(Context context, ArrayList<LocationData> locationDataArrayList) {
             super(context, R.layout.row_layout, locationDataArrayList);
@@ -54,13 +58,18 @@ public class StartActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG,"onCreate started");
         super.onCreate(savedInstanceState);
-        context = this;
+        InternalStorage.context = this;
+        locationDataList = readLocationDataList();
+        /*
         try {
-            locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, FILENAME);
+            locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, "locationDataList");
         } catch (Exception e) {
-            Log.e("StartActivity", "onCreate:" + e);
+            Log.e("StartActivity", "locationDataList readObject:" + e);
         }
+        */
+        Log.d(TAG,"onCreate, locationDataList" + locationDataList);
 
         if (locationDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);
@@ -106,7 +115,7 @@ public class StartActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             locationDataList.remove(i);
                             myAdapter.notifyDataSetChanged();
-                            saveLocationDataList();
+                            writeLocationDataList(locationDataList);
                         }
                     });
                     alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -154,14 +163,5 @@ public class StartActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    // TODO should be either read/write or save/load
-    static void saveLocationDataList() {
-        try {
-            InternalStorage.writeObject(context, FILENAME, locationDataList);
-        } catch (IOException e) {
-            Toast.makeText(context, "Failed to save alarm", Toast.LENGTH_SHORT).show();
-            Log.e("IOException", e.getMessage());
-        }
-    }
 
 }

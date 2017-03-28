@@ -1,32 +1,73 @@
 package org.gpsalarm;
 
-
 import android.location.Location;
 
 import java.io.Serializable;
 
-class LocationData extends Location implements Serializable {
+// This is proxy class to allow save important fields of not serializable Location objects.
+// It should be directly used only in InternalStorage class
+class LocationData implements Serializable {
+    static final String TAG = "LocationData";
+    String name = "Location";
+    double longitude;
+    double latitude;
+    float accuracy;
 
-    private String name = "Location";
-
-    public LocationData(String provider) {
-        super(provider);
-        setLongitude(100);
-        setLatitude(100);
+    LocationData(String name) {
+        this.name = name;
+        longitude = 100;
+        latitude = 100;
     }
 
-    public LocationData() {
-        this(null);
+    LocationData() {
+        this("LocationData");
     }
-    public String getName() {
+
+    String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    void setName(String name) {
         this.name = name;
     }
 
-    public boolean isReal() {
-        return getLongitude() <= 90.0 && getLatitude() <= 90.0;
+    double getLongitude() {
+        return longitude;
     }
+
+    void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    double getLatitude() {
+        return latitude;
+    }
+
+    void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    void setAccuracy(float accuracy) {
+        this.accuracy = accuracy;
+    }
+
+    float getAccuracy() {
+        return accuracy;
+    }
+
+    boolean isReal() {
+        return longitude <= 90.0 && latitude <= 90.0;
+    }
+
+    void set(Location location) {
+        name = "Location";
+        longitude = location.getLongitude();
+        latitude = location.getLatitude();
+    }
+
+    @Override
+    public String toString() {
+        return name + ": "  + latitude + ", " + longitude;
+    }
+
 }

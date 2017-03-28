@@ -24,11 +24,10 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "test.org.alarmtest");
         //acquireLock();
-        // Do Work
         // TODO alarmActivity.doWork();
-        //if (mapsActivity != null)
         wakeLock.acquire();
-        ((MapsActivity) MapsActivity.context).renewLocationRequest();
+        if (mapsActivity != null)
+            mapsActivity.renewLocationRequest();
         wakeLock.release();
         //releaseWakeLock();
     }

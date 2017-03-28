@@ -66,9 +66,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import static org.gpsalarm.StartActivity.FILENAME;
+import static org.gpsalarm.InternalStorage.readInterval;
+import static org.gpsalarm.InternalStorage.readLocation;
+import static org.gpsalarm.InternalStorage.readLocationData;
+import static org.gpsalarm.InternalStorage.readLocationDataList;
+import static org.gpsalarm.InternalStorage.writeInterval;
+import static org.gpsalarm.InternalStorage.writeLocation;
+import static org.gpsalarm.InternalStorage.writeLocationData;
+import static org.gpsalarm.InternalStorage.writeLocationDataList;
 import static org.gpsalarm.StartActivity.locationDataList;
-import static org.gpsalarm.StartActivity.saveLocationDataList;
+import static org.gpsalarm.StartActivity.selectedLocationData;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,12 +87,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Date date = new Date(2020, 12, 24);
     final static int MY_PERMISSION_FINE_LOCATIONS = 101; // FIXME rename without my..
     final static int NOTIFICATION_ID = 899068621;
+    final static String TAG = "MapsActivity";
     static String ringtonePath;
-    static float maximumSpeed; // FIXME set to nonstatic int
-    static long interval = 0;                    // interval between tracking requests
-    static private boolean userNotified = false; // is user notified about arrival
-    static private boolean isTracking = true;    // is tracking going on
-    static private boolean checkedWiFi = false;  // is WiFi connection suggested
+    static int maximumSpeed;
+    static int interval = 0;                    // interval between tracking requests
+    private boolean userNotified = false; // is user notified about arrival
+    private boolean isTracking = true;    // is tracking going on
+    private boolean checkedWiFi = false;  // is WiFi connection suggested
     //static boolean handleLocationChanged; // FIXME just for testing, remove later
     static Context context;
     static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
@@ -106,15 +114,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    static MapsActivity getMapsActivity() {
-        return (MapsActivity) context;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("onCreate", "");
+        Log.d(TAG, "onCreate started");
         super.onCreate(savedInstanceState);
-        context = this;
+        //InternalStorage.context = this;
 
         // Reset marker
         // FIXME this makes addressName to null, should be deleted
@@ -156,20 +160,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
             };
-
             prefs.registerOnSharedPreferenceChangeListener(prefListener);
-
-            try {
-                locationDataList = (ArrayList<LocationData>) InternalStorage.readObject(this, FILENAME); // Retrieve the list from internal storage
-            } catch (IOException e) {
-                Log.e("File Read error: ", e.getMessage());
-            } catch (ClassNotFoundException e) {
-                Toast.makeText(this, "Failed to retrieve list from file", Toast.LENGTH_SHORT).show();
-                Log.e("File Read error: ", e.getMessage());
-            } catch (Exception e) {
-                Log.e("Exception: ", e.getMessage());
-            }
-
+            locationDataList = readLocationDataList(); // Retrieve the list from internal storage
         }
 
         // Google map searching by addres name
@@ -329,6 +321,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Location location = googleMap.getMyLocation();
         if (marker != null) { // Go to marker location
             LatLng myLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+            setLocationData();
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         } else if (location != null) { // Go to current location
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
@@ -475,12 +468,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return results[0] / 1000;
     }
 
+    // FIXME this method should be removed after code optimization
     private void setLocationData() {
+        Log.d("setLocationData", "started");
+        //InternalStorage.context = this;
         if (marker != null) {
+            if (StartActivity.selectedLocationData == null)
+                StartActivity.selectedLocationData = new LocationData();
             StartActivity.selectedLocationData.setLatitude(marker.getPosition().latitude);
             StartActivity.selectedLocationData.setLongitude(marker.getPosition().longitude);
         }
+        Log.d("setLocationData", "selectedLocationData:" + selectedLocationData);
     }
+
 
     private void showPopup() {
         try {
@@ -555,12 +555,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addLocationDataToList(String name, Marker marker) {
+        Log.d("addLocationDataToList", "called. Name:" + name);
         LocationData toBeAdded = new LocationData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
         toBeAdded.setLongitude(marker.getPosition().longitude);
         locationDataList.add(toBeAdded);
-        saveLocationDataList();
+        writeLocationDataList(locationDataList);
+        Log.d("addLocationDataToList", "finished successfully");
     }
 
 
@@ -652,9 +654,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
-        Log.d("startLocationRequest", "" +
-                "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
-                "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
+        if (locationRequest != null) // FIXME should not be happening
+            Log.d("startLocationRequest", "" +
+                    "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
+                    "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
     }
 
     void renewLocationRequest() {
@@ -750,20 +753,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     // Invoked when location change event occurs
     public void onLocationChanged(Location location) {
-        if (getEstimate() == Estimate.DISABLED) {
-            Log.e("onLocationChanged", "Tracking disabled, but onLocationChanged() still called");
-            return;
-        }
         if (location == null) {
             Log.e("onLocationChanged", "Can't get current location");
             return;
         }
-        if (marker == null) {
-            Log.e("onLocationChanged", "Can't get location marker");
+        if (selectedLocationData == null) {
+            Log.e("onLocationChanged", "Can't get selectedLocationData");
+            return;
+        }
+        if (getEstimate() == Estimate.DISABLED) {
+            Log.e("onLocationChanged", "Tracking disabled, but onLocationChanged() still called");
             return;
         }
         writeLocation(location);
-        Log.d("onLocationChanged", "location:" + location);
+        Log.d("onLocationChanged", "locationData:" + location);
     }
 
     /**
@@ -777,45 +780,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return Estimate.NEAR;         // less than 2 minutes for ongoing, or new request
     }
 
-    static void writeInterval() {
-        try {
-            InternalStorage.writeObject(context, "interval", interval);
-        } catch (Exception e) {
-            Log.e("IOException", e.getMessage());
-        }
-        Log.d("writeInterval", "" + interval);
-    }
-
-    static void readInterval() {
-        try {
-            interval = (Integer) InternalStorage.readObject(context, "interval");
-        } catch (Exception e) {
-            Log.e("IOException", e.getMessage());
-        }
-        Log.d("readInterval", "" + interval);
-    }
-
-    void writeLocation(Location location) {
-        try {
-            InternalStorage.writeObject(context, "location", location);
-        } catch (Exception e) {
-            Log.e("IOException", e.getMessage());
-        }
-        Log.d("writeLocation", "" + location);
-    }
-
-    Location readLocation() {
-        Location location = null;
-        try {
-            location = (Location) InternalStorage.readObject(context, "location");
-            Log.d("readLocation", "" + location);
-        } catch (Exception e) {
-            Log.e("IOException", e.getMessage());
-        }
-        return location;
-    }
-
     void hanldleLastLocation() {
+        Log.d("hanldleLastLocation", "started");
         Location location = readLocation();
         if (location == null) {
             Log.e("handleLastLocation", "location is null");
@@ -844,9 +810,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.i("hanldleLastLocation", "destination reached");
         } else {
             // Else set interval for location, depending on distance
-            interval = (long) (3600_000 * distance / maximumSpeed);
+            interval = (int) (3600_000 * distance / maximumSpeed);
             if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
-            writeInterval(); // TODO should save only if changed
+            writeInterval((int) interval); // TODO should save only if changed
             if (getEstimate() == Estimate.FAR) {
                 alarm.releaseWakeLock();
                 Log.d("hanldleLastLocation", "releaseWakeLock() called");
