@@ -30,7 +30,7 @@ import java.util.Comparator;
 
 public class StartActivity extends AppCompatActivity {
     final  String TAG = "StartActivity";
-    LocationData selectedLocationData;
+    static  LocationData selectedLocationData;
     ArrayList<LocationData> locationDataList = new ArrayList<>();
     InternalStorage internalStorage;
 

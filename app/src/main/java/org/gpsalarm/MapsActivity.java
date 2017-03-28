@@ -65,6 +65,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import static org.gpsalarm.StartActivity.selectedLocationData; // FIXME should use Intent extras
 
 import java.util.ArrayList;
 
@@ -79,7 +80,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     final static String TAG = "MapsActivity";
     static String ringtonePath;
     static int maximumSpeed;
-    static int interval = 0;                    // interval between tracking requests
+    static int interval = 0;              // interval between tracking requests
     private boolean userNotified = false; // is user notified about arrival
     private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
@@ -97,7 +98,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     String addressName;
     InternalStorage internalStorage;
     ArrayList<LocationData> locationDataList;
-    LocationData selectedLocationData;
     private LocationManager locationManager;
 
     enum Estimate { // List of travel distance estimation values
