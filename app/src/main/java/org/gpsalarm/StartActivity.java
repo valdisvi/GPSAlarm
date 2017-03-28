@@ -24,7 +24,9 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * Prilozhenie startuet s etoj stranici, esli estj soxranennie tochki, inache perexodit v MapsActivity.
+ * App starts from here.
+ * It shows screen of this activity if list of locations is not empty,
+ * or goes to MapsActivity
  */
 
 public class StartActivity extends AppCompatActivity {
@@ -57,7 +59,7 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
-        
+
         locationDataList = internalStorage.readLocationDataList();
         Log.d(TAG, "onCreate, locationDataList" + locationDataList);
 

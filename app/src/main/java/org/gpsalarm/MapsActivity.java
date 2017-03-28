@@ -73,7 +73,6 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnInfoWindowClickListener, LocationListener {
-    //Date date = new Date(2020, 12, 24);
     final static int PERMISSION_FINE_LOCATIONS = 101;
     final static int NOTIFICATION_ID = 899068621;
     final static String TAG = "MapsActivity";
@@ -83,7 +82,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean userNotified = false; // is user notified about arrival
     private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
-    //static boolean handleLocationChanged; // FIXME just for testing, remove later
     static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
@@ -644,10 +642,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
-        if (locationRequest != null) // FIXME should not be happening
-            Log.d("startLocationRequest", "" +
-                    "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
-                    "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
+        Log.d("startLocationRequest", "" +
+                "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
+                "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
     }
 
     void renewLocationRequest() {
