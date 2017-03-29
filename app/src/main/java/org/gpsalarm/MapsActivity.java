@@ -41,6 +41,7 @@ import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.Notification.Builder;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -115,8 +116,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Manage wake up alerts
         interval = 1000;
         alarm = new AlarmReceiver();
-        //alarm.onReceive(this, new Intent());
-        alarm.setAlarm(this, (int) interval); // FIXME should be simple integer
+        alarm.setAlarm(this, interval);
 
         checkGPS();
         checkAndConnect();
@@ -283,6 +283,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             zoom(15, 90, 40);
             if (selectedLocationData != null && selectedLocationData.isReal()) {
                 setMarker(selectedLocationData.getLatitude(), selectedLocationData.getLongitude());
+                startLocationRequest();
             }
             centerMap();
         } else {
@@ -358,7 +359,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(new LatLng(lat, lng));
         marker = googleMap.addMarker(options);
         circle = drawCircle(new LatLng(lat, lng));
-        startLocationRequest();
     }
 
     private Circle drawCircle(LatLng latLng) {
