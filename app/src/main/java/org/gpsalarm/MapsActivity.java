@@ -179,7 +179,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initMap() {
-        Log.v("initMap", "");
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
     }
@@ -215,12 +214,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             changeMapType(prefs.getString("mapType", "2"));
 
             this.googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+
                 @Override
                 public void onMarkerDragStart(Marker marker) {
-                    Log.v(TAG, "onMarkerDragStart");
-                    if (circle != null) {
+                    if (circle != null)
                         circle.remove();
-                    }
                 }
 
                 @Override
@@ -229,7 +227,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
-                    Log.v(TAG, "onMarkerDragEnd");
                     LatLng coordinates = marker.getPosition();
                     circle = drawCircle(coordinates);
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
@@ -241,7 +238,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
-                    Log.v(TAG, "setOnMapLongClickListener");
                     if (marker != null) {
                         MapsActivity.this.googleMap.clear();
                     }
@@ -260,7 +256,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public View getInfoContents(Marker marker) {
-                    Log.v(TAG, "getInfoContents. Marker" + marker);
                     View v = getLayoutInflater().inflate(R.layout.info_window, null);
                     TextView tvLocality = (TextView) v.findViewById(R.id.tv_locality);
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
@@ -342,7 +337,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(@SuppressWarnings("unused") View view) {
-        Log.v("geoLocate", "addressName:" + addressName);
         checkGPS();
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -357,7 +351,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(double lat, double lng) {
-        Log.v("setMarker", "");
         checkGPS();
         checkAndConnect();
         clearMarker();  // If marker has a reference, remove it.
@@ -448,7 +441,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.v("onConnected", "");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (locationRequest != null)
                 LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
@@ -476,13 +468,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     double haversine(double lat1, double lon1, double lat2, double lon2) {
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
-        Log.v("haversine", "distance: " + results[0]);
         return results[0];
     }
 
     // FIXME this method should be removed after code optimization
     private void setLocationData() {
-        Log.v("setLocationData", "started");
         setInternalStorage();
         if (marker != null) {
             if (selectedLocationData == null)
@@ -495,7 +485,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void showPopup() {
         try {
-            Log.v("showPopup", "");
             Toast.makeText(this, "You have arrived!", Toast.LENGTH_LONG).show();
             LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -565,14 +554,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addLocationDataToList(String name, Marker marker) {
-        Log.v("addLocationDataToList", "called. Name:" + name);
         LocationData toBeAdded = new LocationData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
         toBeAdded.setLongitude(marker.getPosition().longitude);
         locationDataList.add(toBeAdded);
         internalStorage.writeLocationDataList(locationDataList);
-        Log.v("addLocationDataToList", "finished successfully");
     }
 
 
@@ -601,7 +588,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void buildAlertMessageNoGps() {
-        Log.v("buildAlertMessageNoGps", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
                 .setCancelable(false)
@@ -622,7 +608,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void buildAlertMessageNoWifi() {
-        Log.v("buildAlertMessageNoWifi", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -722,7 +707,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void enableWiFi() {
-        Log.v("enableWiFi", "");
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
         startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
@@ -730,7 +714,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void checkGPS() {
-        Log.v("checkGPS", "");
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             buildAlertMessageNoGps();
@@ -746,7 +729,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
             checkedWiFi = true;
-            Log.v("checkAndConnect", "checkedWiFi");
         }
     }
 
@@ -792,7 +774,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if ((haversine(prevLocation, location) > location.getAccuracy()) ||
                 (location.getAccuracy() < prevLocation.getAccuracy()))
             internalStorage.writeLocation(location);
-        Log.v("onLocationChanged", "location:" + location);
+        Log.d("onLocationChanged", "location:" + location);
     }
 
     /**
@@ -835,7 +817,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 NotificationManager notificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(NOTIFICATION_ID);
-                Log.v("user", "notified");
             }
             Log.i("hanldleLastLocation", "destination reached");
         } else {

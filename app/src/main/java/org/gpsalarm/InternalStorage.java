@@ -31,6 +31,7 @@ final class InternalStorage extends Application {
             oos.flush();
             oos.close();
             fos.close();
+            Log.v("writeObject", key + ":" + object);
         } catch (Exception e) {
             Log.e("writeObject", "Exception:" + e.getMessage() + "\n" + stackTraceToString(e));
         }
@@ -44,6 +45,7 @@ final class InternalStorage extends Application {
             Object object = ois.readObject();
             fis.close();
             ois.close();
+            Log.v("readObject", key + ":" + object);
             return object;
         } catch (Exception e) {
             Log.e("readObject", "Exception:" + e.getMessage() + "\n" + stackTraceToString(e));
@@ -54,7 +56,6 @@ final class InternalStorage extends Application {
     void writeLocationDataList(ArrayList<LocationData> locationDataList) {
         checkContext();
         writeObject(context, LOCATION_DATA_LIST, locationDataList);
-        Log.v("writeLocationDataList", "locationDataList:" + locationDataList);
     }
 
     ArrayList<LocationData> readLocationDataList() {
@@ -65,14 +66,12 @@ final class InternalStorage extends Application {
             Log.w("readLocationDataList", "Empty list was created");
             list = new ArrayList<>();
         }
-        Log.v("readLocationDataList", "list:" + list);
         return list;
     }
 
     void writeInterval(int interval) {
         checkContext();
         writeObject(context, INTERVAL, new Integer(interval));
-        Log.v("writeInterval", "interval:" + interval);
     }
 
     int readInterval() {
@@ -81,20 +80,17 @@ final class InternalStorage extends Application {
         Object object = readObject(context, INTERVAL);
         if (object != null)
             interval = (Integer) object;
-        Log.v("readInterval", "interval:" + interval);
         return (int) interval;
     }
 
     void writeLocationData(LocationData locationData) {
         checkContext();
         writeObject(context, LOCATION_DATA, locationData);
-        Log.v("writeLocationData", "writeLocationData:" + locationData);
     }
 
     LocationData readLocationData() {
         checkContext();
         LocationData locationData = (LocationData) readObject(context, LOCATION_DATA);
-        Log.v("readLocationData", "locationData:" + locationData);
         return locationData;
     }
 
@@ -110,7 +106,6 @@ final class InternalStorage extends Application {
             location.setAccuracy(locationData.accuracy);
         } else
             Log.w("readLocation", "Empty location was created");
-        Log.v("readLocation", "location:" + location);
         return location;
     }
 
@@ -120,7 +115,6 @@ final class InternalStorage extends Application {
         data.setLongitude(location.getLongitude());
         data.setAccuracy(location.getAccuracy());
         writeLocationData(data);
-        Log.v("writeLocation", "writeLocation:" + location);
     }
 
     void checkContext() {

@@ -19,13 +19,12 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.v(TAG, "OnReceive");
+        Log.w(TAG, "started");
         if (mapsActivity != null && mapsActivity.getEstimate() != MapsActivity.Estimate.DISABLED) {
             PowerManager powerManager;
             powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "org.gpsalarm");
             acquireLock();
-            Log.w(TAG, "renewLocationRequest called...");
             mapsActivity.renewLocationRequest();
             // This loop is because recent Android versions limit alarms to >=60 seconds
             /*-
@@ -57,6 +56,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     void acquireLock() {
+        Log.d(TAG, "acquireLock");
         //Acquire the lock, if not still hold
         if (wakeLock != null && !wakeLock.isHeld()) {
             wakeLock.acquire();
@@ -66,7 +66,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
 
     void releaseWakeLock() {
         // Release lock if is hold
-        Log.v(TAG, "releaseWakeLock");
+        Log.d(TAG, "releaseWakeLock");
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
             Log.v(TAG, "lock released");
