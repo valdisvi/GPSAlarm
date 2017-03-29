@@ -3,6 +3,7 @@ package org.gpsalarm;
 import android.Manifest;
 import android.app.Dialog;
 import android.app.Notification;
+import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -20,7 +21,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -42,7 +42,6 @@ import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.app.Notification.Builder;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -75,12 +74,13 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnInfoWindowClickListener, LocationListener {
-    final int PERMISSION_FINE_LOCATIONS = 101;
     static final int NOTIFICATION_ID = 899068621;
+    final int PERMISSION_FINE_LOCATIONS = 101;
+    final int MIN_INTERVAL = 1000;
     final String TAG = "MapsActivity";
     String ringtonePath;
     int maximumSpeed;
-    int interval = 0;              // interval between tracking requests
+    static int interval = 0;              // interval between tracking requests
     private boolean userNotified = false; // is user notified about arrival
     private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
@@ -114,7 +114,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         selectedLocationData = (LocationData) getIntent().getSerializableExtra(InternalStorage.SEL_LOC_DATA_KEY);
 
         // Manage wake up alerts
-        interval = 1000;
+        interval = MIN_INTERVAL;
         alarm = new AlarmReceiver();
         alarm.setAlarm(this, interval);
 
@@ -643,12 +643,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Reinitialize alarm time
         alarm = new AlarmReceiver();
         if (isTracking) {
-            // TODO should disable Pause/Start buttons when arrived
             stopLocationRequest();
             Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             Log.i("stopTrackingBut", "paused");
         } else {
-            interval = 1000; // reset to smallest interval, to start with precise coordinate calculation
+            interval = MIN_INTERVAL; // reset to smallest interval, to start with precise coordinate calculation
             startLocationRequest();
             Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             Log.i("stopTrackingBut", "started");
@@ -677,6 +676,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void renewLocationRequest() {
+        Log.v("renewLocationRequest", "started");
         setInternalStorage();
         interval = internalStorage.readInterval();
         locationRequest = new LocationRequest();
@@ -698,10 +698,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addLocationRequest(locationRequest);
         //Set new schedules for alarm
         alarmRadius = ((int) (alarmRadius * 1.2) + 50); // FIXME just for testing
-        Log.w("renewLocationRequest", "alarmRadius: " + alarmRadius);
-        AlarmReceiver alarmReceiver = new AlarmReceiver();
-        alarmReceiver.setAlarm(this, interval);
-        Log.v("renewLocationRequest", "renewed");
+        maximumSpeed = ((int) (maximumSpeed * 1.2) + 10); // !!!
+        if (getEstimate() != Estimate.DISABLED) { // Renew alarm schedule, if scheduler should be used
+            AlarmReceiver alarmReceiver = new AlarmReceiver();
+            alarmReceiver.setAlarm(this, interval);
+            Log.v("renewLocationRequest","alarm reshceduled after:" + interval);
+        }
         hanldleLastLocation();
     }
 
@@ -716,7 +718,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.GREEN);
         button.setText("Start tracking");
-        findViewById(R.id.button4).setVisibility(View.GONE);
         Log.i("stopLocationRequest", "stopped successfully");
     }
 
@@ -784,7 +785,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        // Write new location:
+        // Handle new location:
         // 1. If there was real movement
         // 2. If better accuracy was met
         Location prevLocation = internalStorage.readLocation();
@@ -825,11 +826,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (!userNotified) {
                 //  lock is aquired in AlarmReceiver
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
+                v.vibrate(new long[]{0, 300, 300, 300, 300, 600}, -1); // vibrate with pattern
                 mediaPlayer.start();
-                showPopup();
                 userNotified = true;
                 stopLocationRequest();
+                findViewById(R.id.button4).setVisibility(View.GONE);
+                showPopup();
                 NotificationManager notificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(NOTIFICATION_ID);
@@ -839,13 +841,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             // Else set interval for location, depending on distance
             interval = (int) (3600 * distance / maximumSpeed); // distance is in m, but speed in km
-            if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
+            if (interval < MIN_INTERVAL) interval = MIN_INTERVAL; // preserve minimal interval to 1s
             internalStorage.writeInterval(interval);
-            if (getEstimate() != Estimate.NEAR) {
+            if (getEstimate() == Estimate.NEAR) {
+                Log.d("hanldleLastLocation", "wakeLock hold");
+            } else {
                 alarm.releaseWakeLock();
                 Log.d("hanldleLastLocation", "wakeLock released");
-            } else
-                Log.d("hanldleLastLocation", "wake lock hold");
+            }
+
         }
         Log.d("hanldleLastLocation", "" +
                 "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +

@@ -10,6 +10,7 @@ import android.util.Log;
 import android.os.PowerManager.*;
 
 import static android.content.Context.POWER_SERVICE;
+import static org.gpsalarm.MapsActivity.interval;
 
 public class AlarmReceiver extends WakefulBroadcastReceiver {
     private final String TAG = "AlarmReceiver";
@@ -22,11 +23,25 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         if (mapsActivity != null && mapsActivity.getEstimate() != MapsActivity.Estimate.DISABLED) {
             PowerManager powerManager;
             powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
-            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "org.gpsalarm");
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "org.gpsalarm");
             acquireLock();
             Log.w(TAG, "renewLocationRequest called...");
             mapsActivity.renewLocationRequest();
-            //releaseWakeLock();
+            // This loop is because recent Android versions limit alarms to >=60 seconds
+            /*-
+            do {
+                mapsActivity.renewLocationRequest();
+                try {
+                    Log.v(TAG, "sleeping for: " + interval);
+                    Thread.sleep(interval);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Errror: " + e + "\n" + InternalStorage.stackTraceToString(e));
+                }
+            }
+            while (mapsActivity.getEstimate() == MapsActivity.Estimate.NEAR);
+            */
+
+            // Wake lock is released only if FAR away from MapsActivity
         }
     }
 
@@ -55,7 +70,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
             Log.v(TAG, "lock released");
-        }
-        Log.v(TAG, "lock is empty or not held");
+        } else
+            Log.v(TAG, "lock is empty or not held");
     }
 }
