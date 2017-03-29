@@ -197,6 +197,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        final String TAG = "onMapReady";
 
         this.googleMap = googleMap;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
@@ -208,6 +209,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
                 @Override
                 public void onMarkerDragStart(Marker marker) {
+                    Log.v(TAG, "onMarkerDragStart");
                     if (circle != null) {
                         circle.remove();
                     }
@@ -219,6 +221,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
+                    Log.v(TAG, "onMarkerDragEnd");
                     LatLng coordinates = marker.getPosition();
                     circle = drawCircle(coordinates);
                     double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
@@ -230,6 +233,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
+                    Log.v(TAG, "setOnMapLongClickListener");
                     if (marker != null) {
                         MapsActivity.this.googleMap.clear();
                     }
@@ -248,6 +252,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 @Override
                 public View getInfoContents(Marker marker) {
+                    Log.v(TAG, "getInfoContents. Marker" + marker);
                     View v = getLayoutInflater().inflate(R.layout.info_window, null);
                     TextView tvLocality = (TextView) v.findViewById(R.id.tv_locality);
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
