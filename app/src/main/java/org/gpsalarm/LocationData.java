@@ -7,7 +7,7 @@ import java.io.Serializable;
 // This is proxy class to allow save important fields of not serializable Location objects.
 // It should be directly used only in InternalStorage class
 class LocationData implements Serializable {
-    static final String TAG = "LocationData";
+    final String TAG = "LocationData";
     String name = "Location";
     double longitude;
     double latitude;

@@ -73,20 +73,20 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnInfoWindowClickListener, LocationListener {
-    final static int PERMISSION_FINE_LOCATIONS = 101;
-    final static int NOTIFICATION_ID = 899068621;
-    final static String TAG = "MapsActivity";
-    static String ringtonePath;
-    static int maximumSpeed;
-    static int interval = 0;              // interval between tracking requests
+    final int PERMISSION_FINE_LOCATIONS = 101;
+    static final int NOTIFICATION_ID = 899068621;
+    final String TAG = "MapsActivity";
+    String ringtonePath;
+    int maximumSpeed;
+    int interval = 0;              // interval between tracking requests
     private boolean userNotified = false; // is user notified about arrival
     private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
-    static Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
+    Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
     Circle circle;
-    static float alarmRadius;    // FIXME set to nonstatic int Used by markers. Can now be set through preferences.
+    float alarmRadius;    //  Can be set through preferences.
     MediaPlayer mediaPlayer;
     LocationRequest locationRequest;  // variable for requesting location
     AlarmReceiver alarm;
@@ -400,7 +400,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void onInfoWindowClick(Marker marker) {
+    public void onInfoWindowClick(final Marker marker) {
         View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setView(myView);
@@ -425,7 +425,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 return;
                             }
                         }
-                        addLocationDataToList(name, MapsActivity.marker);
+                        addLocationDataToList(name, marker);
                         MapsActivity.this.marker.hideInfoWindow();
                     }
                 });

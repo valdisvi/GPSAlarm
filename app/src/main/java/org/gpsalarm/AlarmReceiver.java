@@ -13,8 +13,8 @@ import static android.content.Context.POWER_SERVICE;
 
 public class AlarmReceiver extends WakefulBroadcastReceiver {
     private final String TAG = "AlarmReceiver";
-    static MapsActivity mapsActivity;
-    static WakeLock wakeLock;
+    MapsActivity mapsActivity;
+    WakeLock wakeLock;
 
     @Override
     public void onReceive(Context context, Intent intent) {
