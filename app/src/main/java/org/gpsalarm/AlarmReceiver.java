@@ -44,17 +44,17 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         //Acquire the lock, if not still hold
         if (wakeLock != null && !wakeLock.isHeld()) {
             wakeLock.acquire();
-            Log.d(TAG, "lock acquired");
+            Log.v(TAG, "lock acquired");
         }
     }
 
     void releaseWakeLock() {
         // Release lock if is hold
-        Log.d(TAG, "releaseWakeLock");
+        Log.v(TAG, "releaseWakeLock");
         if (wakeLock != null && wakeLock.isHeld()) {
             wakeLock.release();
-            Log.d(TAG, "lock released");
+            Log.v(TAG, "lock released");
         }
-        Log.d(TAG, "lock is empty or not held");
+        Log.v(TAG, "lock is empty or not held");
     }
 }

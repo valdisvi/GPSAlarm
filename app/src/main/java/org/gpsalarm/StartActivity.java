@@ -55,13 +55,13 @@ public class StartActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate started");
+        Log.v(TAG, "onCreate started");
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
 
         locationDataList = internalStorage.readLocationDataList();
-        Log.d(TAG, "onCreate, locationDataList" + locationDataList);
+        Log.v(TAG, "onCreate, locationDataList" + locationDataList);
 
         if (locationDataList.size() == 0) {
             Intent intent = new Intent(this, MapsActivity.class);

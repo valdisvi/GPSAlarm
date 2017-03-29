@@ -105,7 +105,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "onCreate started");
+        Log.v(TAG, "onCreate started");
         super.onCreate(savedInstanceState);
         setInternalStorage();
 
@@ -171,7 +171,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initMap() {
-        Log.d("initMap", "");
+        Log.v("initMap", "");
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
     }
@@ -328,7 +328,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void geoLocate(@SuppressWarnings("unused") View view) {
-        Log.d("geoLocate", "addressName:" + addressName);
+        Log.v("geoLocate", "addressName:" + addressName);
         checkGPS();
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -343,7 +343,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void setMarker(double lat, double lng) {
-        Log.d("setMarker", "");
+        Log.v("setMarker", "");
         checkGPS();
         checkAndConnect();
         clearMarker();  // If marker has a reference, remove it.
@@ -435,7 +435,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d("onConnected", "");
+        Log.v("onConnected", "");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (locationRequest != null)
                 LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
@@ -469,13 +469,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     double haversine(double lat1, double lon1, double lat2, double lon2) {
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
-        Log.d("haversine", "distance: " + results[0]);
+        Log.v("haversine", "distance: " + results[0]);
         return results[0];
     }
 
     // FIXME this method should be removed after code optimization
     private void setLocationData() {
-        Log.d("setLocationData", "started");
+        Log.v("setLocationData", "started");
         setInternalStorage();
         if (marker != null) {
             if (selectedLocationData == null)
@@ -483,13 +483,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             selectedLocationData.setLatitude(marker.getPosition().latitude);
             selectedLocationData.setLongitude(marker.getPosition().longitude);
         }
-        Log.d("setLocationData", "selectedLocationData:" + selectedLocationData);
+        Log.v("setLocationData", "selectedLocationData:" + selectedLocationData);
     }
 
 
     private void showPopup() {
         try {
-            Log.d("showPopup", "");
+            Log.v("showPopup", "");
             addNotification("GPS alarm", "You have arrived!");
             LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -560,14 +560,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void addLocationDataToList(String name, Marker marker) {
-        Log.d("addLocationDataToList", "called. Name:" + name);
+        Log.v("addLocationDataToList", "called. Name:" + name);
         LocationData toBeAdded = new LocationData();
         toBeAdded.setName(name);
         toBeAdded.setLatitude(marker.getPosition().latitude);
         toBeAdded.setLongitude(marker.getPosition().longitude);
         locationDataList.add(toBeAdded);
         internalStorage.writeLocationDataList(locationDataList);
-        Log.d("addLocationDataToList", "finished successfully");
+        Log.v("addLocationDataToList", "finished successfully");
     }
 
 
@@ -596,7 +596,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void buildAlertMessageNoGps() {
-        Log.d("buildAlertMessageNoGps", "");
+        Log.v("buildAlertMessageNoGps", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
                 .setCancelable(false)
@@ -617,7 +617,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void buildAlertMessageNoWifi() {
-        Log.d("buildAlertMessageNoWifi", "");
+        Log.v("buildAlertMessageNoWifi", "");
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -662,7 +662,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
         if (locationRequest != null) // TODO should check why it happens
-            Log.d("startLocationRequest", "" +
+            Log.v("startLocationRequest", "" +
                     "\ninterval:" + String.valueOf(locationRequest.getInterval()) +
                     "\nfastest interval:" + String.valueOf(locationRequest.getFastestInterval()));
     }
@@ -690,7 +690,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Set new schedules for alarm
         AlarmReceiver alarmReceiver = new AlarmReceiver();
         alarmReceiver.setAlarm(this, interval);
-        Log.d("renewLocationRequest", "renewed");
+        Log.v("renewLocationRequest", "renewed");
         hanldleLastLocation();
     }
 
@@ -709,7 +709,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void enableWiFi() {
-        Log.d("enableWiFi", "");
+        Log.v("enableWiFi", "");
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(true);
         startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
@@ -717,7 +717,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void checkGPS() {
-        Log.d("checkGPS", "");
+        Log.v("checkGPS", "");
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
             buildAlertMessageNoGps();
@@ -733,7 +733,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
             checkedWiFi = true;
-            Log.d("checkAndConnect", "checkedWiFi");
+            Log.v("checkAndConnect", "checkedWiFi");
         }
     }
 
@@ -780,7 +780,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if ((haversine(prevLocation, location) > location.getAccuracy()) ||
                 (location.getAccuracy() < prevLocation.getAccuracy()))
             internalStorage.writeLocation(location);
-        Log.d("onLocationChanged", "location:" + location);
+        Log.v("onLocationChanged", "location:" + location);
     }
 
     /**
@@ -795,7 +795,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     void hanldleLastLocation() {
-        Log.d("hanldleLastLocation", "started");
+        Log.v("hanldleLastLocation", "started");
         Location location = internalStorage.readLocation();
         if (location == null) {
             Log.e("handleLastLocation", "location is null");
@@ -823,7 +823,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 NotificationManager notificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 notificationManager.cancel(NOTIFICATION_ID);
-                Log.d("user", "notified");
+                Log.v("user", "notified");
             }
             Log.i("hanldleLastLocation", "destination reached");
         } else {
