@@ -20,6 +20,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -103,7 +104,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         FAR, NEAR, DISABLED;
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.v(TAG, "onCreate started");
@@ -168,6 +168,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onError(Status status) {
             }
         });
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        // Hide Start/Pause tracking button if location is not selected
+        if (selectedLocationData == null || !selectedLocationData.isReal())
+            findViewById(R.id.button4).setVisibility(View.GONE);
     }
 
     private void initMap() {
@@ -456,20 +464,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     /**
-     * @param location1 — Location1
-     * @param location2 — Location2
-     * @return — distance between locations in meters
+     * Returns distance between locations in meters
      */
     double haversine(Location location1, Location location2) {
         return haversine(location1.getLatitude(), location1.getLongitude(), location2.getLatitude(), location2.getLongitude());
     }
 
     /**
-     * @param lat1 — latitude of point1
-     * @param lon1 — longitude of poin1
-     * @param lat2 — latitude of point2
-     * @param lon2 — longitude of point2
-     * @return — distance in meters between two points
+     * Returns distance in meters between two points
      */
     double haversine(double lat1, double lon1, double lat2, double lon2) {
         float[] results = new float[1];
@@ -491,11 +493,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.v("setLocationData", "selectedLocationData:" + selectedLocationData);
     }
 
-
     private void showPopup() {
         try {
             Log.v("showPopup", "");
-            addNotification("GPS alarm", "You have arrived!");
+            Toast.makeText(this, "You have arrived!", Toast.LENGTH_LONG).show();
             LayoutInflater inflater = (LayoutInflater) MapsActivity.this
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             final View layout = inflater.inflate(R.layout.screen_popup,
@@ -525,9 +526,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
 
                 void closePopUp(PopupWindow popupWindow) {
-                    mediaPlayer.pause();
+                    mediaPlayer.release();
                     clearMarker();
-                    userNotified = false;
                     popupWindow.dismiss();
                 }
             });
@@ -662,7 +662,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkGPS();
         renewLocationRequest();
         internalStorage.writeInterval(interval);
-        addNotification("GPS alarm", "Tracking is started");
+        addNotificationIcon();
+        // Hide search options
+        findViewById(R.id.button).setVisibility(View.GONE);
+        findViewById(R.id.place_autocomplete_fragment).setVisibility(View.GONE);
+        // Toggle tracking button view
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
@@ -693,6 +697,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest);
         //Set new schedules for alarm
+        alarmRadius = ((int) (alarmRadius * 1.2) + 50); // FIXME just for testing
+        Log.w("renewLocationRequest", "alarmRadius: " + alarmRadius);
         AlarmReceiver alarmReceiver = new AlarmReceiver();
         alarmReceiver.setAlarm(this, interval);
         Log.v("renewLocationRequest", "renewed");
@@ -706,10 +712,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         locationRequest = null;
         isTracking = false;
-        //alarm.cancelAlarm(this);
+        alarm.releaseWakeLock();
         Button button = (Button) findViewById(R.id.button4);
         button.setBackgroundColor(Color.GREEN);
         button.setText("Start tracking");
+        findViewById(R.id.button4).setVisibility(View.GONE);
         Log.i("stopLocationRequest", "stopped successfully");
     }
 
@@ -742,14 +749,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void addNotification(String title, String text) {
-        Notification.Builder mBuilder =
-                new Notification.Builder(this)
-                        .setSmallIcon(R.drawable.ic_launcher_web)
-                        .setContentTitle(title)
-                        .setContentText(text)
-                        .setAutoCancel(true)
-                        .setPriority(Notification.PRIORITY_MIN);
+    public void addNotificationIcon() {
+        Builder mBuilder = new Builder(this)
+                .setSmallIcon(R.drawable.ic_launcher_web)
+                .setContentTitle("GPSAlarm")
+                .setContentText("Programm Running")
+                .setOngoing(true)
+                .setAutoCancel(false)
+                .setPriority(Notification.PRIORITY_MIN);
         Intent resultIntent = new Intent(this,
                 MapsActivity.class);
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -759,7 +766,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
-
     }
 
     @Override
@@ -818,7 +824,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (distance <= alarmRadius) {
             if (!userNotified) {
                 //  lock is aquired in AlarmReceiver
-                // alarm.acquireLock();
                 Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
                 mediaPlayer.start();
@@ -836,12 +841,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             interval = (int) (3600 * distance / maximumSpeed); // distance is in m, but speed in km
             if (interval < 1000) interval = 1000; // preserve minimal interval to 1s
             internalStorage.writeInterval(interval);
+            if (getEstimate() != Estimate.NEAR) {
+                alarm.releaseWakeLock();
+                Log.d("hanldleLastLocation", "wakeLock released");
+            } else
+                Log.d("hanldleLastLocation", "wake lock hold");
         }
         Log.d("hanldleLastLocation", "" +
                 "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +
                 "\nalarmRad: " + alarmRadius + "m" +
                 "\ninterval: " + interval + "s" +
-                "\ndistance: " + String.format("%.2f", distance) + "km" +
+                "\ndistance: " + String.format("%.2f", distance) + "m" +
                 "\naccuracy: " + location.getAccuracy() + "m" +
                 "\nestimate: " + getEstimate());
     }

@@ -13,19 +13,20 @@ import static android.content.Context.POWER_SERVICE;
 
 public class AlarmReceiver extends WakefulBroadcastReceiver {
     private final String TAG = "AlarmReceiver";
-    MapsActivity mapsActivity;
-    WakeLock wakeLock;
+    static MapsActivity mapsActivity;
+    static WakeLock wakeLock;
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.v(TAG, "OnReceive");
         if (mapsActivity != null && mapsActivity.getEstimate() != MapsActivity.Estimate.DISABLED) {
-            Log.d(TAG, "OnReceive called...");
             PowerManager powerManager;
             powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "org.gpsalarm");
             acquireLock();
+            Log.w(TAG, "renewLocationRequest called...");
             mapsActivity.renewLocationRequest();
-            releaseWakeLock();
+            //releaseWakeLock();
         }
     }
 
