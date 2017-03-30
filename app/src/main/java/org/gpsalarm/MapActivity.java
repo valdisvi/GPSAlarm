@@ -84,21 +84,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private boolean userNotified = false; // is user notified about arrival
     private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
-    Marker marker;    // Marker of chosen or to be added location
+    // Google map elements
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
+    LatLng addressGeo;
+    String addressName;
+
+    Marker marker;    // Marker of chosen or to be added location
     Circle circle;
     float alarmRadius;    //  Can be set through preferences.
     MediaPlayer mediaPlayer;
+    LocationManager locationManager;
     LocationRequest locationRequest;  // variable for requesting location
     AlarmReceiver alarm;
     WifiManager wifiManager;
-    LatLng addressGeo;
-    String addressName;
     InternalStorage internalStorage;
     ArrayList<LocationData> locationDataList;
     LocationData selectedLocationData; // location of selected target
-    private LocationManager locationManager;
 
     enum Estimate { // List of travel distance estimation values
         FAR, NEAR, DISABLED;
