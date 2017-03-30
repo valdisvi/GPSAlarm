@@ -676,6 +676,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         locationRequest = null;
         isTracking = false;
         alarm.releaseWakeLock();
+        alarm = null;
         Button button = (Button) findViewById(R.id.startpause);
         button.setBackgroundColor(Color.GREEN);
         button.setText("Start tracking");
