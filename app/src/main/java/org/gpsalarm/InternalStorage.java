@@ -96,7 +96,7 @@ final class InternalStorage extends Application {
 
     Location readLocation() {
         LocationData locationData;
-        Location location = location = new Location("Location");
+        Location location = new Location("Location");
         Object object = readLocationData();
         if (object != null) {
             locationData = (LocationData) object;
