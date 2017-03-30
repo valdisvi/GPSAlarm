@@ -175,9 +175,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        // Hide Start/Pause tracking button if location is not selected
+        // Hide Start/Pause tracking button if target location is not selected
         if (selectedLocationData == null || !selectedLocationData.isReal())
-            findViewById(R.id.button4).setVisibility(View.GONE);
+            findViewById(R.id.startpause).setVisibility(View.GONE);
     }
 
     private void initMap() {
@@ -638,7 +638,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         findViewById(R.id.button).setVisibility(View.GONE);
         findViewById(R.id.place_autocomplete_fragment).setVisibility(View.GONE);
         // Toggle tracking button view
-        Button button = (Button) findViewById(R.id.button4);
+        Button button = (Button) findViewById(R.id.startpause);
         button.setBackgroundColor(Color.RED);
         button.setText("Pause tracking");
         if (locationRequest != null) // TODO should check why it happens
@@ -687,7 +687,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         locationRequest = null;
         isTracking = false;
         alarm.releaseWakeLock();
-        Button button = (Button) findViewById(R.id.button4);
+        Button button = (Button) findViewById(R.id.startpause);
         button.setBackgroundColor(Color.GREEN);
         button.setText("Start tracking");
         Log.i("stopLocationRequest", "stopped successfully");
@@ -798,7 +798,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 mediaPlayer.start();
                 userNotified = true;
                 stopLocationRequest();
-                findViewById(R.id.button4).setVisibility(View.GONE);
+                findViewById(R.id.startpause).setVisibility(View.GONE);
                 showPopup();
                 NotificationManager notificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
