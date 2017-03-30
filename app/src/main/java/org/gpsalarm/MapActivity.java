@@ -84,7 +84,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private boolean userNotified = false; // is user notified about arrival
     private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
-    Marker marker;    // Marker of chosen location, should be static, otherwise can get different values when activity is called from different places
+    Marker marker;    // Marker of chosen or to be added location
     GoogleMap googleMap;
     GoogleApiClient googleApiClient;
     Circle circle;
@@ -97,7 +97,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     String addressName;
     InternalStorage internalStorage;
     ArrayList<LocationData> locationDataList;
-    LocationData selectedLocationData;
+    LocationData selectedLocationData; // location of selected target
     private LocationManager locationManager;
 
     enum Estimate { // List of travel distance estimation values
@@ -203,7 +203,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         final String TAG = "onMapReady";
 
         this.googleMap = googleMap;
@@ -217,8 +217,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                 @Override
                 public void onMarkerDragStart(Marker marker) {
-                    if (circle != null)
-                        circle.remove();
                 }
 
                 @Override
@@ -227,23 +225,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                 @Override
                 public void onMarkerDragEnd(Marker marker) {
-                    LatLng coordinates = marker.getPosition();
-                    circle = drawCircle(coordinates);
-                    double roundedLatitude = Math.round(coordinates.latitude * 100000.0) / 100000.0;
-                    double roundedLongitude = Math.round(coordinates.longitude * 100000.0) / 100000.0;
-                    setMarker(roundedLatitude, roundedLongitude);
                 }
             });
 
             this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng point) {
-                    if (marker != null) {
-                        MapActivity.this.googleMap.clear();
-                    }
-                    double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
-                    double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
-                    setMarker(roundedLatitude, roundedLongitude);
+                    if (selectedLocationData != null) // If marker represents target location
+                        return;                       // don't allow to move it
+                    setMarker(point.latitude, point.longitude);
                 }
             });
 
@@ -263,15 +253,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     TextView tvSnippet = (TextView) v.findViewById(R.id.tv_snippet);
                     LatLng coordinates = marker.getPosition();
                     tvLocality.setText(marker.getTitle());
-                    tvLat.setText("Latitude: " + coordinates.latitude);
-                    tvLng.setText("Longitude: " + coordinates.longitude);
+                    tvLat.setText("Latitude: " + String.format("%.4f", coordinates.latitude));
+                    tvLng.setText("Longitude: " + String.format("%.4f", coordinates.longitude));
                     tvSnippet.setText(marker.getSnippet());
                     return v;
                 }
             });
 
             this.googleMap.setOnInfoWindowClickListener(this);
-
 
         }
 
@@ -341,18 +330,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (addressName != null) {
             double lat = addressGeo.latitude;
             double lng = addressGeo.longitude;
-            double roundedLat = Math.round(lat * 100000.0) / 100000.0;
-            double roundedLng = Math.round(lng * 100000.0) / 100000.0;
             goToLocationZoom(lat, lng, 15);
-            setMarker(roundedLat, roundedLng);
+            setMarker(lat, lng);
         } else {
             Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
         }
     }
 
     void setMarker(double lat, double lng) {
-        checkGPS();
-        checkAndConnect();
         clearMarker();  // If marker has a reference, remove it.
         MarkerOptions options = new MarkerOptions()                 // This MarkerOptions object is needed to add a marker.
                 .draggable(true)
@@ -374,7 +359,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void clearMarker() {
         if (marker != null) {
-            marker.remove(); // remove from form
+            marker.remove(); // remove from map
             marker = null;
         }
         if (circle != null) {
@@ -687,7 +672,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (getEstimate() != Estimate.DISABLED) { // Renew alarm schedule, if scheduler should be used
             AlarmReceiver alarmReceiver = new AlarmReceiver();
             alarmReceiver.setAlarm(this, interval);
-            Log.v("renewLocationRequest","alarm reshceduled after:" + interval);
+            Log.v("renewLocationRequest", "alarm reshceduled after:" + interval);
         }
         hanldleLastLocation();
     }
@@ -790,8 +775,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     void hanldleLastLocation() {
         Log.v("hanldleLastLocation", "started");
-        Location location = internalStorage.readLocation();
-        if (location == null) {
+        Location prevLocation = internalStorage.readLocation();
+        if (prevLocation == null) {
             Log.e("handleLastLocation", "location is null");
             return;
         }
@@ -800,9 +785,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
         double distance = 0;
-        double lat = location.getLatitude();
-        double lon = location.getLongitude();
-        distance = haversine(lat, lon, marker.getPosition().latitude, marker.getPosition().longitude);
+        distance = haversine(prevLocation.getLatitude(), prevLocation.getLongitude(),
+                marker.getPosition().latitude, marker.getPosition().longitude);
         // Check if reached destination
         if (distance <= alarmRadius) {
             if (!userNotified) {
@@ -837,7 +821,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 "\nalarmRad: " + alarmRadius + "m" +
                 "\ninterval: " + interval + "s" +
                 "\ndistance: " + String.format("%.2f", distance) + "m" +
-                "\naccuracy: " + location.getAccuracy() + "m" +
+                "\naccuracy: " + prevLocation.getAccuracy() + "m" +
                 "\nestimate: " + getEstimate());
     }
 
