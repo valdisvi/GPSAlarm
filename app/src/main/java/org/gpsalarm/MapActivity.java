@@ -611,18 +611,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         alert.show();
     }
 
-    public void stopTrackingBut(@SuppressWarnings("unused") View view) {
+    public void startPauseTrack(@SuppressWarnings("unused") View view) {
         // Reinitialize alarm time
         alarm = new AlarmReceiver();
         if (isTracking) {
             stopLocationRequest();
             Toast.makeText(MapActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
-            Log.i("stopTrackingBut", "paused");
+            Log.i("startPauseTrack", "paused");
         } else {
             interval = MIN_INTERVAL; // reset to smallest interval, to start with precise coordinate calculation
             startLocationRequest();
             Toast.makeText(MapActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
-            Log.i("stopTrackingBut", "started");
+            Log.i("startPauseTrack", "started");
         }
     }
 
