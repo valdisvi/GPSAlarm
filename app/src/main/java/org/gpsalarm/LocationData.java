@@ -57,7 +57,7 @@ class LocationData implements Serializable {
     }
 
     boolean isReal() {
-        return longitude <= 90.0 && latitude <= 90.0;
+        return longitude <= 90 && latitude <= 90 && longitude >= -90 && latitude >= -90;
     }
 
     void set(Location location) {
@@ -68,7 +68,7 @@ class LocationData implements Serializable {
 
     @Override
     public String toString() {
-        return name + ": "  + latitude + ", " + longitude;
+        return name + ": " + latitude + ", " + longitude;
     }
 
 }
