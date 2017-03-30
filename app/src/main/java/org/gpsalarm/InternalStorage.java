@@ -7,6 +7,7 @@ import android.location.Location;
 import android.util.Log;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -47,6 +48,8 @@ final class InternalStorage extends Application {
             ois.close();
             Log.v("readObject", key + ":" + object);
             return object;
+        } catch (FileNotFoundException e) {
+            Log.w("readObject", "file:" + key + " was not found");
         } catch (Exception e) {
             Log.e("readObject", "Exception:" + e.getMessage() + "\n" + stackTraceToString(e));
         }
@@ -80,41 +83,42 @@ final class InternalStorage extends Application {
         Object object = readObject(context, INTERVAL);
         if (object != null)
             interval = (Integer) object;
-        return (int) interval;
+        return interval;
     }
 
-    void writeLocationData(LocationData locationData) {
+    void writeLocationData(LocationData locationData, int index) {
         checkContext();
-        writeObject(context, LOCATION_DATA, locationData);
+        writeObject(context, LOCATION_DATA + index, locationData);
     }
 
-    LocationData readLocationData() {
+    LocationData readLocationData(int index) {
         checkContext();
-        LocationData locationData = (LocationData) readObject(context, LOCATION_DATA);
+        LocationData locationData = (LocationData) readObject(context, LOCATION_DATA + index);
         return locationData;
     }
 
-    Location readLocation() {
+    Location readLocation(int index) {
         LocationData locationData;
         Location location = new Location("Location");
-        Object object = readLocationData();
+        Object object = readLocationData(index);
         if (object != null) {
             locationData = (LocationData) object;
             location.setProvider(locationData.name);
             location.setLatitude(locationData.latitude);
             location.setLongitude(locationData.longitude);
             location.setAccuracy(locationData.accuracy);
-        } else
-            Log.w("readLocation", "Empty location was created");
-        return location;
+            return location;
+        } else {
+            return null;
+        }
     }
 
-    void writeLocation(Location location) {
+    void writeLocation(Location location, int index) {
         LocationData data = new LocationData(location.getProvider());
         data.setLatitude(location.getLatitude());
         data.setLongitude(location.getLongitude());
         data.setAccuracy(location.getAccuracy());
-        writeLocationData(data);
+        writeLocationData(data, index);
     }
 
     void checkContext() {
