@@ -75,14 +75,16 @@ import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnInfoWindowClickListener, LocationListener {
     static final int NOTIFICATION_ID = 899068621;
+    static final int TARGET_ID = 0;
+    static final int LOCATION_ID = 1;
     final int PERMISSION_FINE_LOCATIONS = 101;
     final int MIN_INTERVAL = 1000;
     final String TAG = "MapActivity";
     String ringtonePath;
     int maximumSpeed;
     static int interval = 0;              // interval between tracking requests
+    boolean isTracking = false;    // is tracking going on
     private boolean userNotified = false; // is user notified about arrival
-    private boolean isTracking = true;    // is tracking going on
     private boolean checkedWiFi = false;  // is WiFi connection suggested
     // Google map elements
     GoogleMap googleMap;
@@ -114,11 +116,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // Read selected location from Extra of passed intent
         selectedLocationData = (LocationData) getIntent().getSerializableExtra(InternalStorage.SEL_LOC_DATA_KEY);
-
-        // Manage wake up alerts
-        interval = MIN_INTERVAL;
-        alarm = new AlarmReceiver();
-        alarm.setAlarm(this, interval);
+        if(selectedLocationData!=null)
+            internalStorage.writeLocationData(selectedLocationData,TARGET_ID);
 
         checkGPS();
         checkAndConnect();
@@ -277,7 +276,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             zoom(15, 90, 40);
             if (selectedLocationData != null && selectedLocationData.isReal()) {
                 setMarker(selectedLocationData.getLatitude(), selectedLocationData.getLongitude());
-                startLocationRequest();
+                startLocationRequest(); // If location is passed from StartActivity, start checking locations
             }
             centerMap();
         } else {
@@ -309,7 +308,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Location location = googleMap.getMyLocation();
         if (marker != null) { // Go to marker location
             LatLng myLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
-            setLocationData();
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         } else if (location != null) { // Go to current location
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
@@ -456,18 +454,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         float[] results = new float[1];
         Location.distanceBetween(lat1, lon1, lat2, lon2, results);
         return results[0];
-    }
-
-    // FIXME this method should be removed after code optimization
-    private void setLocationData() {
-        setInternalStorage();
-        if (marker != null) {
-            if (selectedLocationData == null)
-                selectedLocationData = new LocationData();
-            selectedLocationData.setLatitude(marker.getPosition().latitude);
-            selectedLocationData.setLongitude(marker.getPosition().longitude);
-        }
-        Log.v("setLocationData", "selectedLocationData:" + selectedLocationData);
     }
 
     private void showPopup() {
@@ -627,12 +613,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     void startLocationRequest() {
+        checkGPS();
         isTracking = true;
         userNotified = false;
-        interval = 0;
-        checkGPS();
-        renewLocationRequest();
+        interval = MIN_INTERVAL;
         internalStorage.writeInterval(interval);
+        // Manage wake up alerts
+        alarm = new AlarmReceiver();
+        alarm.setAlarm(this, interval);
+        renewLocationRequest();
         addNotificationIcon();
         // Hide search options
         findViewById(R.id.button).setVisibility(View.GONE);
@@ -741,34 +730,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     // Invoked when location change event occurs
     public void onLocationChanged(Location location) {
-        if (location == null) {
-            Log.e("onLocationChanged", "Can't get current location");
-            return;
-        }
-        if (selectedLocationData == null) {
-            Log.e("onLocationChanged", "Can't get selectedLocationData");
-            return;
-        }
         if (getEstimate() == Estimate.DISABLED) {
-            Log.e("onLocationChanged", "Tracking disabled, but onLocationChanged() still called");
+            locationManager.removeUpdates((android.location.LocationListener) this);
+            Log.d("onLocationChanged", "Tracking disabled");
             return;
         }
-
-        // Handle new location:
-        // 1. If there was real movement
-        // 2. If better accuracy was met
-        Location prevLocation = internalStorage.readLocation();
-        if ((haversine(prevLocation, location) > location.getAccuracy()) ||
-                (location.getAccuracy() < prevLocation.getAccuracy()))
-            internalStorage.writeLocation(location);
-        Log.d("onLocationChanged", "location:" + location);
+        Location prevLocation = internalStorage.readLocation(LOCATION_ID);
+        // Save new location into storage
+        if (prevLocation == null // previous location is null
+                || (haversine(prevLocation, location) > location.getAccuracy()) // there was real movement
+                || (location.getAccuracy() < prevLocation.getAccuracy()))       // better accuracy was met
+            internalStorage.writeLocation(location, LOCATION_ID);
+        Log.v("onLocationChanged", "prevLocation:" + prevLocation + " location:" + location);
     }
 
     /**
      * Return enumerated value of estimated distance, based on status and expected traveling time
      */
     Estimate getEstimate() {
-        if (!isTracking)
+        if (selectedLocationData == null || !isTracking)
             return Estimate.DISABLED; // tracking disabled
         else if (interval > 120_000)  // more than 2 minutes for ongoing trackinig
             return Estimate.FAR;
@@ -777,18 +757,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     void hanldleLastLocation() {
         Log.v("hanldleLastLocation", "started");
-        Location prevLocation = internalStorage.readLocation();
-        if (prevLocation == null) {
-            Log.e("handleLastLocation", "location is null");
-            return;
-        }
-        if (marker == null) { // TODO should be locationData, not marker
-            Log.e("handleLastLocation", "marker is null");
+        Location target = internalStorage.readLocation(TARGET_ID);
+        Location location = internalStorage.readLocation(LOCATION_ID);
+        if (target == null || location == null) {
+            Log.d("hanldleLastLocation", "target: " + target + " location:" + location);
             return;
         }
         double distance = 0;
-        distance = haversine(prevLocation.getLatitude(), prevLocation.getLongitude(),
-                marker.getPosition().latitude, marker.getPosition().longitude);
+        distance = haversine(location.getLatitude(), location.getLongitude(),
+                target.getLatitude(), target.getLongitude());
         // Check if reached destination
         if (distance <= alarmRadius) {
             if (!userNotified) {
@@ -816,14 +793,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 alarm.releaseWakeLock();
                 Log.d("hanldleLastLocation", "wakeLock released");
             }
-
         }
         Log.d("hanldleLastLocation", "" +
                 "\nmaxSpeed: " + String.valueOf(maximumSpeed) + "km/h" +
                 "\nalarmRad: " + alarmRadius + "m" +
                 "\ninterval: " + interval + "s" +
                 "\ndistance: " + String.format("%.2f", distance) + "m" +
-                "\naccuracy: " + prevLocation.getAccuracy() + "m" +
+                "\naccuracy: " + location.getAccuracy() + "m" +
                 "\nestimate: " + getEstimate());
     }
 
