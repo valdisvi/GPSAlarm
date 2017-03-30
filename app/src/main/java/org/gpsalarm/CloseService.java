@@ -22,7 +22,7 @@ public class CloseService extends Service {
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        mNotificationManager.cancel(MapsActivity.NOTIFICATION_ID);
+        mNotificationManager.cancel(MapActivity.NOTIFICATION_ID);
         stopSelf();
     }
 }

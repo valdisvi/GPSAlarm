@@ -26,7 +26,7 @@ import java.util.Comparator;
 /**
  * App starts from here.
  * It shows screen of this activity if list of locations is not empty,
- * or goes to MapsActivity
+ * or goes to MapActivity
  */
 
 public class StartActivity extends AppCompatActivity {
@@ -64,7 +64,7 @@ public class StartActivity extends AppCompatActivity {
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
 
         if (locationDataList.size() == 0) {
-            Intent intent = new Intent(this, MapsActivity.class);
+            Intent intent = new Intent(this, MapActivity.class);
             startActivity(intent);
         } else {
             setContentView(R.layout.activity_start);
@@ -89,7 +89,7 @@ public class StartActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     selectedLocationData = (LocationData) myAdapter.getItem(i);
                     Toast.makeText(StartActivity.this, "Alarm '" + selectedLocationData.getName() + "' is set", Toast.LENGTH_LONG).show();
-                    Intent myIntent = new Intent(StartActivity.this, MapsActivity.class);
+                    Intent myIntent = new Intent(StartActivity.this, MapActivity.class);
                     myIntent.putExtra(InternalStorage.SEL_LOC_DATA_KEY, selectedLocationData);
                     Log.i("StartActivity", selectedLocationData.getName() + " is selected");
                     startActivity(myIntent);
@@ -152,7 +152,7 @@ public class StartActivity extends AppCompatActivity {
     }
 
     public void toMap(@SuppressWarnings("unused") View view) {
-        Intent intent = new Intent(this, MapsActivity.class);
+        Intent intent = new Intent(this, MapActivity.class);
         startActivity(intent);
     }
 

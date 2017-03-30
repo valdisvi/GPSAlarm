@@ -47,17 +47,17 @@
 
 
         <activity
-            android:name="org.gpsalarm.MapsActivity"
+            android:name="org.gpsalarm.MapActivity"
             android:parentActivityName="org.gpsalarm.StartActivity" />
 
         <activity
             android:name="org.gpsalarm.PreferencesActivity"
             android:label="Settings"
-            android:parentActivityName="org.gpsalarm.MapsActivity" />
+            android:parentActivityName="org.gpsalarm.MapActivity" />
         <activity
             android:name="org.gpsalarm.HelpActivity"
             android:label="Help"
-            android:parentActivityName="org.gpsalarm.MapsActivity" />
+            android:parentActivityName="org.gpsalarm.MapActivity" />
 
         <!-- TODO should use new key AIzaSyCbsL3lrU-8yCmTRTgvtl___WD5rkplkcM here -->
         <meta-data

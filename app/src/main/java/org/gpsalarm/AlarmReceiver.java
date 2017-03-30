@@ -10,26 +10,25 @@ import android.util.Log;
 import android.os.PowerManager.*;
 
 import static android.content.Context.POWER_SERVICE;
-import static org.gpsalarm.MapsActivity.interval;
 
 public class AlarmReceiver extends WakefulBroadcastReceiver {
     private final String TAG = "AlarmReceiver";
-    static MapsActivity mapsActivity;
+    static MapActivity mapActivity;
     static WakeLock wakeLock;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.w(TAG, "started");
-        if (mapsActivity != null && mapsActivity.getEstimate() != MapsActivity.Estimate.DISABLED) {
+        if (mapActivity != null && mapActivity.getEstimate() != MapActivity.Estimate.DISABLED) {
             PowerManager powerManager;
             powerManager = (PowerManager) context.getSystemService(POWER_SERVICE);
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "org.gpsalarm");
             acquireLock();
-            mapsActivity.renewLocationRequest();
+            mapActivity.renewLocationRequest();
             // This loop is because recent Android versions limit alarms to >=60 seconds
             /*-
             do {
-                mapsActivity.renewLocationRequest();
+                mapActivity.renewLocationRequest();
                 try {
                     Log.v(TAG, "sleeping for: " + interval);
                     Thread.sleep(interval);
@@ -37,16 +36,16 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
                     Log.e(TAG, "Errror: " + e + "\n" + InternalStorage.stackTraceToString(e));
                 }
             }
-            while (mapsActivity.getEstimate() == MapsActivity.Estimate.NEAR);
+            while (mapActivity.getEstimate() == MapActivity.Estimate.NEAR);
             */
 
-            // Wake lock is released only if FAR away from MapsActivity
+            // Wake lock is released only if FAR away from MapActivity
         }
     }
 
     public void setAlarm(Context context, int interval) {
         Log.d(TAG, "setAlarm called. interval: " + interval);
-        mapsActivity = (MapsActivity) context;
+        mapActivity = (MapActivity) context;
         AlarmManager alarmManager;
         PendingIntent alarmIntent;
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

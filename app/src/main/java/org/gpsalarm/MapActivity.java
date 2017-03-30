@@ -72,12 +72,12 @@ import java.util.ArrayList;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnInfoWindowClickListener, LocationListener {
     static final int NOTIFICATION_ID = 899068621;
     final int PERMISSION_FINE_LOCATIONS = 101;
     final int MIN_INTERVAL = 1000;
-    final String TAG = "MapsActivity";
+    final String TAG = "MapActivity";
     String ringtonePath;
     int maximumSpeed;
     static int interval = 0;              // interval between tracking requests
@@ -239,7 +239,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 @Override
                 public void onMapLongClick(LatLng point) {
                     if (marker != null) {
-                        MapsActivity.this.googleMap.clear();
+                        MapActivity.this.googleMap.clear();
                     }
                     double roundedLatitude = Math.round(point.latitude * 100000.0) / 100000.0;
                     double roundedLongitude = Math.round(point.longitude * 100000.0) / 100000.0;
@@ -421,18 +421,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         String name = userInput.getText().toString();
 
                         if (TextUtils.isEmpty(name) || TextUtils.getTrimmedLength(name) < 1) {
-                            Toast.makeText(MapsActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(MapActivity.this, "Empty name not allowed. \nPlease try again.", Toast.LENGTH_LONG).show();
                             return;
                         }
 
                         for (LocationData locationData : locationDataList) {
                             if (locationData.getName().equals(name)) {
-                                Toast.makeText(MapsActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
+                                Toast.makeText(MapActivity.this, "Duplicate name not allowed. \nPlease try again with a unique name.", Toast.LENGTH_LONG).show();
                                 return;
                             }
                         }
                         addLocationDataToList(name, marker);
-                        MapsActivity.this.marker.hideInfoWindow();
+                        MapActivity.this.marker.hideInfoWindow();
                     }
                 });
         Dialog myDialog = alertBuilder.create();
@@ -486,7 +486,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void showPopup() {
         try {
             Toast.makeText(this, "You have arrived!", Toast.LENGTH_LONG).show();
-            LayoutInflater inflater = (LayoutInflater) MapsActivity.this
+            LayoutInflater inflater = (LayoutInflater) MapActivity.this
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             final View layout = inflater.inflate(R.layout.screen_popup,
                     (ViewGroup) findViewById(R.id.popup_element));
@@ -580,7 +580,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                 } else {
                     Toast.makeText(getApplicationContext(), "this app requires location permissions to be granted", Toast.LENGTH_LONG).show();
-                    ActivityCompat.finishAffinity(MapsActivity.this);
+                    ActivityCompat.finishAffinity(MapActivity.this);
                     System.exit(0);
                 }
                 break;
@@ -599,7 +599,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                         dialog.cancel();
-                        ActivityCompat.finishAffinity(MapsActivity.this);
+                        ActivityCompat.finishAffinity(MapActivity.this);
                         System.exit(0);
                     }
                 });
@@ -629,12 +629,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         alarm = new AlarmReceiver();
         if (isTracking) {
             stopLocationRequest();
-            Toast.makeText(MapsActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MapActivity.this, "Tracking paused.", Toast.LENGTH_SHORT).show();
             Log.i("stopTrackingBut", "paused");
         } else {
             interval = MIN_INTERVAL; // reset to smallest interval, to start with precise coordinate calculation
             startLocationRequest();
-            Toast.makeText(MapsActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MapActivity.this, "Tracking restored.", Toast.LENGTH_SHORT).show();
             Log.i("stopTrackingBut", "started");
         }
     }
@@ -741,7 +741,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setAutoCancel(false)
                 .setPriority(Notification.PRIORITY_MIN);
         Intent resultIntent = new Intent(this,
-                MapsActivity.class);
+                MapActivity.class);
         resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);

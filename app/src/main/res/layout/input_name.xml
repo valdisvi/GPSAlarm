@@ -8,7 +8,7 @@
     android:paddingRight="16dp"
     android:paddingTop="16dp"
     android:orientation="vertical"
-    tools:context="org.gpsalarm.MapsActivity">
+    tools:context="org.gpsalarm.MapActivity">
 
     <EditText
         android:id="@+id/etxtInputName"
