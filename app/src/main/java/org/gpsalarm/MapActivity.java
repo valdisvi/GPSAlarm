@@ -100,7 +100,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     LocationRequest locationRequest;  // variable for requesting location
     AlarmReceiver alarm;
     WifiManager wifiManager;
-    InternalStorage internalStorage;
+    InternalStorage internalStorage; //NOTE: points are saved in a file on sdcard
     ArrayList<LocationData> locationDataList;
     LocationData selectedLocationData; // location of selected target
 
@@ -153,8 +153,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             locationDataList = internalStorage.readLocationDataList(); // Retrieve the list from internal storage
         }
 
-        // Google map searching by addres name
+        // Google map searching by address name
         // See https://g.co/AppIndexing/AndroidStudio for more information.
+        /** TODO When place is selected from the list, the map should immediately display that location,
+         * instead of having to press "Search location" button.
+         * This is because places shown in autocomplete search are already valid, i.e., they are taken from Google Maps*/
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -229,7 +232,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
             });
 
-            this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            this.googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() { //NOTE: Puts marker on map at held position
                 @Override
                 public void onMapLongClick(LatLng point) {
                     if (selectedLocationData != null) // If marker represents target location
@@ -246,7 +249,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
 
                 @Override
-                public View getInfoContents(Marker marker) {
+                public View getInfoContents(Marker marker) { //NOTE: Displays information about marker
                     View v = getLayoutInflater().inflate(R.layout.info_window, null);
                     TextView tvLocality = (TextView) v.findViewById(R.id.tv_locality);
                     TextView tvLat = (TextView) v.findViewById(R.id.tv_lat);
@@ -280,7 +283,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
             centerMap();
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { //NOTE: Checks device's API level, i.e. API21=Lollipop(5.0)
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATIONS);
             }
         }
@@ -312,7 +315,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         } else if (location != null) { // Go to current location
             LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
-        } else { // Go to Europe
+        } else { // Go to Knared, Sweden
             LatLng coordinates = new LatLng(56.54204, 13.36096);
             CameraUpdate camUpdate = CameraUpdateFactory.newLatLngZoom(coordinates, 3);
             googleMap.moveCamera(camUpdate);
@@ -325,7 +328,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         googleMap.moveCamera(camUpdate);
     }
 
-    public void geoLocate(@SuppressWarnings("unused") View view) {
+    public void geoLocate(@SuppressWarnings("unused") View view) { //NOTE: Attempts to find location, if no suggestions from list are shown
+        //It's possible to search by address or geographical coordinates
         checkGPS();
         if (addressName != null) {
             double lat = addressGeo.latitude;
@@ -391,7 +395,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    public void onInfoWindowClick(final Marker marker) {
+    public void onInfoWindowClick(final Marker marker) { //NOTE: Allows to add name for set alarm
         View myView = (LayoutInflater.from(this)).inflate(R.layout.input_name, null);
         final AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
         alertBuilder.setView(myView);
@@ -612,7 +616,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    void startLocationRequest() {
+    void startLocationRequest() { //NOTE: Start tracking location
         checkGPS();
         isTracking = true;
         userNotified = false;
@@ -668,7 +672,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         hanldleLastLocation();
     }
 
-    void stopLocationRequest() {
+    void stopLocationRequest() { //NOTE: Stop tracking location
         if (googleApiClient != null && googleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
             googleApiClient.disconnect();
