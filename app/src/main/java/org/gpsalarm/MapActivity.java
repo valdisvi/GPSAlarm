@@ -155,9 +155,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // Google map searching by address name
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        /** TODO When place is selected from the list, the map should immediately display that location,
-         * instead of having to press "Search location" button.
-         * This is because places shown in autocomplete search are already valid, i.e., they are taken from Google Maps*/
+        /** TODO Fix app crash, after pressing Add alarm*/
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
@@ -166,6 +164,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 addressGeo = place.getLatLng();
                 addressName = place.getName().toString();
                 Log.i("V", "longitude: " + place.getLatLng().longitude);
+                googleMap.addMarker(new MarkerOptions()
+                        .draggable(true)
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))
+                        .position(place.getLatLng())
+                        .title(addressName)).showInfoWindow();
+                float zoomLevel = 16.0f; //This goes up to 21
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), zoomLevel));
             }
 
             @Override
@@ -421,6 +426,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             }
                         }
                         addLocationDataToList(name, marker);
+                        //FIXME Crashes app when "Save as" is pressed
+                        // Possible fix - comment/delete everything associated with "Search Location" button as they could overlap
                         MapActivity.this.marker.hideInfoWindow();
                     }
                 });
