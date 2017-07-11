@@ -27,15 +27,19 @@
         android:textSize="25dp"
         android:textStyle="bold"
         android:text="Your alarms:"
-        android:paddingLeft="15dp" />
+        android:paddingLeft="15dp"
+        android:id="@+id/textView2" />
 
     <ListView
         android:id="@+id/listView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="30dp"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="11dp"
-        android:layout_width="350dp"
-        android:layout_height="420dp"
-        android:paddingTop="30dp" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>
