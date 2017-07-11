@@ -10,11 +10,12 @@ import android.util.Log;
 import android.os.PowerManager.*;
 
 import static android.content.Context.POWER_SERVICE;
-//testing
+
 public class AlarmReceiver extends WakefulBroadcastReceiver {
     private final String TAG = "AlarmReceiver";
     static MapActivity mapActivity;
-    static WakeLock wakeLock;
+    static WakeLock wakeLock; //NOTE: Controls whether screen must kept on or off.
+    //NOTE: PowerManager controls CPU usage. PARTIAL_WAKE_LOCK = cpu(on), screen(off), keyboard(off)
 
     @Override
     public void onReceive(Context context, Intent intent) {
