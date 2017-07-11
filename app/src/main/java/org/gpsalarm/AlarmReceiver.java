@@ -10,7 +10,7 @@ import android.util.Log;
 import android.os.PowerManager.*;
 
 import static android.content.Context.POWER_SERVICE;
-
+//testing
 public class AlarmReceiver extends WakefulBroadcastReceiver {
     private final String TAG = "AlarmReceiver";
     static MapActivity mapActivity;
