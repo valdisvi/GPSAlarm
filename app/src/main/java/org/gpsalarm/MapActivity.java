@@ -337,7 +337,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         googleMap.moveCamera(camUpdate);
     }
 
-    /*public void geoLocate(@SuppressWarnings("unused") View view) { 
+    /*public void geoLocate(@SuppressWarnings("unused") View view) {
         //It's possible to search by address or geographical coordinates
         checkGPS();
         if (addressName != null) {

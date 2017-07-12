@@ -30,13 +30,13 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <Button
+       <!-- <Button
             android:text="Search location"
             android:id="@+id/button"
             android:onClick="geoLocate"
             android:background="@color/wallet_holo_blue_light"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content" /> -->
     </LinearLayout>
 
     <Button
