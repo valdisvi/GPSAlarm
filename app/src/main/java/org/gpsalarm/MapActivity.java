@@ -164,13 +164,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 addressGeo = place.getLatLng();
                 addressName = place.getName().toString();
                 Log.i("V", "longitude: " + place.getLatLng().longitude);
-                googleMap.addMarker(new MarkerOptions()
-                        .draggable(true)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.alarm_marker_40))
-                        .position(place.getLatLng())
-                        .title(addressName)).showInfoWindow();
-                float zoomLevel = 16.0f; //This goes up to 21
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), zoomLevel));
+
+                checkGPS();
+                if (addressName != null) {
+                    double lat = addressGeo.latitude;
+                    double lng = addressGeo.longitude;
+                    goToLocationZoom(lat, lng, 15);
+                    setMarker(lat, lng);
+                } else {
+                    Toast.makeText(getApplicationContext(), "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
+                }
             }
 
             @Override
@@ -333,7 +336,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         googleMap.moveCamera(camUpdate);
     }
 
-    public void geoLocate(@SuppressWarnings("unused") View view) { //NOTE: Attempts to find location, if no suggestions from list are shown
+    /*public void geoLocate(@SuppressWarnings("unused") View view) {
         //It's possible to search by address or geographical coordinates
         checkGPS();
         if (addressName != null) {
@@ -344,7 +347,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         } else {
             Toast.makeText(this, "No such location found. \nTry a different keyword.", Toast.LENGTH_LONG).show();
         }
-    }
+    }*/
 
     void setMarker(double lat, double lng) {
         clearMarker();  // If marker has a reference, remove it.
@@ -635,7 +638,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         renewLocationRequest();
         addNotificationIcon();
         // Hide search options
-        findViewById(R.id.button).setVisibility(View.GONE);
+        //findViewById(R.id.button).setVisibility(View.GONE);
         findViewById(R.id.place_autocomplete_fragment).setVisibility(View.GONE);
         // Toggle tracking button view
         Button button = (Button) findViewById(R.id.startpause);
@@ -762,7 +765,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     Estimate getEstimate() {
         if (selectedLocationData == null || !isTracking)
             return Estimate.DISABLED; // tracking disabled
-        else if (interval > 120_000)  // more than 2 minutes for ongoing trackinig
+        else if (interval > 120_000)  // more than 2 minutes for ongoing tracking
             return Estimate.FAR;
         return Estimate.NEAR;         // less than 2 minutes for ongoing, or new request
     }
