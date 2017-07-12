@@ -397,6 +397,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 intent = new Intent(this, HelpActivity.class);
                 startActivity(intent);
                 return true;
+            case R.id.menuItemExit:
+                intent = new Intent(this, StartActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("Exit", true);
+                startActivity(intent);
+                finish();
+                //System.exit(0); //only kills this method and reloads StartActivity.java
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -820,5 +827,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             internalStorage = new InternalStorage();
         if (internalStorage.getContext() == null)
             internalStorage.setContext(this);
+    }
+
+    protected void onResume(){
+        super.onResume();
+    }
+
+    protected void onPause(){
+        super.onPause();
+    }
+
+    protected void onStop(){
+        super.onStop();
+    }
+
+    protected void onDestroy(){
+        super.onDestroy();
     }
 }
