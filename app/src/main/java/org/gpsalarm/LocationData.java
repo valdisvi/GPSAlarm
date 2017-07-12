@@ -3,7 +3,6 @@ package org.gpsalarm;
 import android.location.Location;
 
 import java.io.Serializable;
-// Test comment
 // This is proxy class to allow save important fields of not serializable Location objects.
 // It should be directly used only in InternalStorage class
 class LocationData implements Serializable {
@@ -57,7 +56,7 @@ class LocationData implements Serializable {
     }
 
     boolean isReal() {
-        return longitude <= 90 && latitude <= 90 && longitude >= -90 && latitude >= -90;
+        return longitude <= 180 && latitude <= 90 && longitude >= -180 && latitude >= -90;
     }
 
     void set(Location location) {

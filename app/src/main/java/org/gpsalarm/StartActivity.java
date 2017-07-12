@@ -63,10 +63,7 @@ public class StartActivity extends AppCompatActivity {
         locationDataList = internalStorage.readLocationDataList();
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
 
-        if (locationDataList.size() == 0) {
-            Intent intent = new Intent(this, MapActivity.class);
-            startActivity(intent);
-        } else {
+
             setContentView(R.layout.activity_start);
             final ArrayAdapter myAdapter = new CustomAdapter(this, locationDataList);
             ListView listView = (ListView) findViewById(R.id.listView);
@@ -84,8 +81,8 @@ public class StartActivity extends AppCompatActivity {
             listView.setAdapter(myAdapter);
 
             final ListView myListView2 = listView;
-            myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02,2017
-                @Override
+            myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02.2017
+                @Override //NOTE: open map, which will show saved point with drawn radius
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     selectedLocationData = (LocationData) myAdapter.getItem(i);
                     Toast.makeText(StartActivity.this, "Alarm '" + selectedLocationData.getName() + "' is set", Toast.LENGTH_LONG).show();
@@ -97,9 +94,9 @@ public class StartActivity extends AppCompatActivity {
             });
 
             myListView2.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
+                @Override //NOTE delete saved point, if selection is long-pressed
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
-                    AlertDialog.Builder alert = new AlertDialog.Builder(StartActivity.this);
+                    AlertDialog.Builder alert = new AlertDialog.Builder(StartActivity.this); //NOTE: build confirmation AlertDialog
                     alert.setMessage("Are you sure you want to delete this?");
                     alert.setCancelable(false);
                     alert.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -122,12 +119,12 @@ public class StartActivity extends AppCompatActivity {
                     return true;
                 }
             });
-        }
+
 
     }
 
 
-    @Override
+    @Override //NOTE: Options menu (top-right corner of the screen)
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
         return super.onCreateOptionsMenu(menu);         // More on this line: http://stackoverflow.com/questions/10303898/oncreateoptionsmenu-calling-super
@@ -158,6 +155,7 @@ public class StartActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
 
     public void toMap(@SuppressWarnings("unused") View view) {
         Intent intent = new Intent(this, MapActivity.class);
