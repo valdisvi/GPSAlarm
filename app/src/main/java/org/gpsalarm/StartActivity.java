@@ -64,11 +64,6 @@ public class StartActivity extends AppCompatActivity {
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
 
 
-        //TODO When app starts, it should always display list of saved locations, even if it is empty
-        if (locationDataList.size() == 0) { //NOTE: if list is empty, immediately go to map
-            Intent intent = new Intent(this, MapActivity.class);
-            startActivity(intent);
-        } else {
             setContentView(R.layout.activity_start);
             final ArrayAdapter myAdapter = new CustomAdapter(this, locationDataList);
             ListView listView = (ListView) findViewById(R.id.listView);
@@ -86,7 +81,7 @@ public class StartActivity extends AppCompatActivity {
             listView.setAdapter(myAdapter);
 
             final ListView myListView2 = listView;
-            myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02,2017
+            myListView2.setOnItemClickListener(new AdapterView.OnItemClickListener() {        // Dobavlenij kod 21.02.2017
                 @Override //NOTE: open map, which will show saved point with drawn radius
                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                     selectedLocationData = (LocationData) myAdapter.getItem(i);
@@ -124,7 +119,7 @@ public class StartActivity extends AppCompatActivity {
                     return true;
                 }
             });
-        }
+
 
     }
 
