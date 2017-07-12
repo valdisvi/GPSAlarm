@@ -143,6 +143,14 @@ public class StartActivity extends AppCompatActivity {
                 intent = new Intent(this, HelpActivity.class);
                 this.startActivity(intent);
                 return true;
+            case R.id.menuItemExit:
+                if (HelpActivity.class!=null){
+                    HelpActinvity.finish();
+                }
+                //getActivity().finish();
+                //new commit  jjj
+                System.exit(0);
+                //return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
