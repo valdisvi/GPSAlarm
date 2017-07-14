@@ -110,7 +110,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.v(TAG, "onCreate started");
+        Log.v(TAG, "onCreate(MapActivity) started");
         super.onCreate(savedInstanceState);
         setInternalStorage();
 
@@ -642,7 +642,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         renewLocationRequest();
         addNotificationIcon();
         // Hide search options
-        //findViewById(R.id.button).setVisibility(View.GONE);
         findViewById(R.id.place_autocomplete_fragment).setVisibility(View.GONE);
         // Toggle tracking button view
         Button button = (Button) findViewById(R.id.startpause);
@@ -779,7 +778,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Location target = internalStorage.readLocation(TARGET_ID);
         Location location = internalStorage.readLocation(LOCATION_ID);
         if (target == null || location == null) {
-            Log.d("handleLastLocation", "target: " + target + " location:" + location);
+            //Log.d("handleLastLocation", "target: " + target + " location:" + location);
             return;
         }
         double distance = 0;
@@ -803,7 +802,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Log.i("handleLastLocation", "destination reached");
         } else {
             // Else set interval for location, depending on distance
-            interval = (int) (3600 * distance / maximumSpeed); // distance is in m, but speed in km
+            //interval = (int) (3600 * distance / maximumSpeed); // distance is in m, but speed in km/h
+            interval = (int) ((0.001*distance) / maximumSpeed) * 3600; //time = distance / speed
             if (interval < MIN_INTERVAL) interval = MIN_INTERVAL; // preserve minimal interval to 1s
             internalStorage.writeInterval(interval);
             if (getEstimate() == Estimate.NEAR) {
@@ -831,17 +831,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     protected void onResume(){
         super.onResume();
+        Log.d(TAG, "onResume(MapActivity) called");
     }
 
     protected void onPause(){
         super.onPause();
+        Log.d(TAG, "onPause(MapActivity) called");
     }
 
     protected void onStop(){
         super.onStop();
+        Log.d(TAG, "onStop(MapActivity) called");
     }
 
     protected void onDestroy(){
         super.onDestroy();
+        Log.d(TAG, "onDestroy(MapActivity) called");
     }
 }

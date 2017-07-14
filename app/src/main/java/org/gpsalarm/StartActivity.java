@@ -55,7 +55,7 @@ public class StartActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.v(TAG, "onCreate started");
+        Log.v(TAG, "onCreate(StartActivity) started");
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
@@ -146,13 +146,7 @@ public class StartActivity extends AppCompatActivity {
                 this.startActivity(intent);
                 return true;
             case R.id.menuItemExit:
-                /*if (HelpActivity.class!=null){
-                    HelpActivity.finish();
-                }*/
-                //getActivity().finish();
-                //new commit  jjj
                 System.exit(0);
-                //return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -166,17 +160,21 @@ public class StartActivity extends AppCompatActivity {
 
     protected void onResume(){
         super.onResume();
+        Log.d(TAG, "onResume(StartActivity) called");
     }
 
     protected void onPause(){
         super.onPause();
+        Log.d(TAG, "onPause(StartActivity) called");
     }
 
     protected void onStop(){
         super.onStop();
+        Log.d(TAG, "onStop(StartActivity) called");
     }
 
     protected void onDestroy(){
         super.onDestroy();
+        Log.d(TAG, "onDestroy(StartActivity) called");
     }
 }
