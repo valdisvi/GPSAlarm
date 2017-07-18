@@ -3,8 +3,10 @@ package org.gpsalarm;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -18,6 +20,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,11 +42,40 @@ import java.util.Comparator;
     3)
  */
 
-public class StartActivity extends AppCompatActivity {
+public class StartActivity extends AppCompatActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+                   GoogleApiClient.OnConnectionFailedListener,
+                   LocationListener {
+
     final String TAG = "StartActivity";
     LocationData selectedLocationData;
     ArrayList<LocationData> locationDataList = new ArrayList<>();
     InternalStorage internalStorage;
+
+    GoogleApiClient m_googleApiClient;
+
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.i(TAG, "Location services connected.");
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.i(TAG, "Location services suspended. Please reconnect.");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
 
     // This class is used to provide alphabetic sorting for LocationData list
     class CustomAdapter extends ArrayAdapter<LocationData> {
@@ -67,6 +103,13 @@ public class StartActivity extends AppCompatActivity {
         internalStorage.setContext(this);
 
         if(getIntent().getBooleanExtra("Exit", false)) finish();
+
+        m_googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
 
         locationDataList = internalStorage.readLocationDataList();
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
@@ -168,12 +211,16 @@ public class StartActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
         Log.d(TAG, "onResume(StartActivity) called");
+        m_googleApiClient.connect();
     }
 
     @Override
     protected void onPause(){
         super.onPause();
         Log.d(TAG, "onPause(StartActivity) called");
+        if (m_googleApiClient.isConnected()) {
+            m_googleApiClient.disconnect();
+        }
     }
 
     @Override
