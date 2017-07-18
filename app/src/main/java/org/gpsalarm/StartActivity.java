@@ -24,7 +24,9 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,12 +55,23 @@ public class StartActivity extends AppCompatActivity
     InternalStorage internalStorage;
 
     GoogleApiClient m_googleApiClient;
-
+    private LocationRequest mLocationRequest;
 
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
+        
+        Location location = LocationServices.FusedLocationApi.getLastLocation(m_googleApiClient);
+        if (location == null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(m_googleApiClient, mLocationRequest, this);
+        }
+        else {
+            handleNewLocation(location);
+        }
+
         Log.i(TAG, "Location services connected.");
+
     }
 
     @Override
@@ -68,14 +81,23 @@ public class StartActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
+        handleNewLocation(location);
     }
 
+    private void handleNewLocation(Location location) {
+
+        double currentLatitude = location.getLatitude();
+        double currentLongitude = location.getLongitude();
+
+        LatLng latLng = new LatLng(currentLatitude, currentLongitude);
+
+        Log.d(TAG, location.toString());
+    }
 
     // This class is used to provide alphabetic sorting for LocationData list
     class CustomAdapter extends ArrayAdapter<LocationData> {
@@ -87,7 +109,8 @@ public class StartActivity extends AppCompatActivity
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater myInflater = LayoutInflater.from(getContext());
-            View theView = myInflater.inflate(R.layout.row_layout, parent, false); // Last two arguments are significant if we inflate this into a parent.
+            // Last two arguments are significant if we inflate this into a parent.
+            View theView = myInflater.inflate(R.layout.row_layout, parent, false);
             String cline = getItem(position).getName();
             TextView myTextView = (TextView) theView.findViewById(R.id.customTextView);
             myTextView.setText(cline);
@@ -110,8 +133,15 @@ public class StartActivity extends AppCompatActivity
                 .addApi(LocationServices.API)
                 .build();
 
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(60 * 1000)        // 60 seconds, in milliseconds
+                .setFastestInterval(10 * 1000); // 10 second, in milliseconds
+
 
         locationDataList = internalStorage.readLocationDataList();
+
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
 
 
@@ -219,7 +249,12 @@ public class StartActivity extends AppCompatActivity
         super.onPause();
         Log.d(TAG, "onPause(StartActivity) called");
         if (m_googleApiClient.isConnected()) {
+
+            LocationServices.FusedLocationApi.removeLocationUpdates(m_googleApiClient, this);
+
             m_googleApiClient.disconnect();
+
+
         }
     }
 
