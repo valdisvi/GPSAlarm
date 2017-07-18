@@ -15,5 +15,5 @@
         android:title="@string/menu_item_help" />
     <item
         android:id="@+id/menuItemExit"
-        android:title="Exit" />
+        android:title="@string/menu_item_exit" />
 </menu>

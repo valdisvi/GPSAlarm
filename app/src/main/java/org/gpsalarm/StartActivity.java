@@ -29,6 +29,12 @@ import java.util.Comparator;
  * or goes to MapActivity
  */
 
+/* TODO
+    1) Set AlarmManager reinitialization time
+    2) onCreate - initialize GPS services and perform checks
+    3)
+ */
+
 public class StartActivity extends AppCompatActivity {
     final String TAG = "StartActivity";
     LocationData selectedLocationData;
@@ -55,10 +61,12 @@ public class StartActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.v(TAG, "onCreate started");
+        Log.v(TAG, "onCreate(StartActivity) started");
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
+
+        if(getIntent().getBooleanExtra("Exit", false)) finish();
 
         locationDataList = internalStorage.readLocationDataList();
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
@@ -94,7 +102,7 @@ public class StartActivity extends AppCompatActivity {
             });
 
             myListView2.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override //NOTE delete saved point, if selection is long-pressed
+                @Override //NOTE: delete saved point, if selection is long-pressed
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
                     AlertDialog.Builder alert = new AlertDialog.Builder(StartActivity.this); //NOTE: build confirmation AlertDialog
                     alert.setMessage("Are you sure you want to delete this?");
@@ -144,13 +152,7 @@ public class StartActivity extends AppCompatActivity {
                 this.startActivity(intent);
                 return true;
             case R.id.menuItemExit:
-                if (HelpActivity.class!=null){
-                    HelpActinvity.finish();
-                }
-                //getActivity().finish();
-                //new commit  jjj
                 System.exit(0);
-                //return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -160,6 +162,32 @@ public class StartActivity extends AppCompatActivity {
     public void toMap(@SuppressWarnings("unused") View view) {
         Intent intent = new Intent(this, MapActivity.class);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        Log.d(TAG, "onResume(StartActivity) called");
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        Log.d(TAG, "onPause(StartActivity) called");
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        Log.d(TAG, "onStop(StartActivity) called");
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        stopService(new Intent(this, AlarmSoundService.class));
+        stopService(new Intent(this, AlarmNotificationService.class));
+        Log.d(TAG, "onDestroy(StartActivity) called");
     }
 
 
