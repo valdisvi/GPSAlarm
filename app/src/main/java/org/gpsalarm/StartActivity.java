@@ -1,9 +1,11 @@
 package org.gpsalarm;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
@@ -68,12 +71,12 @@ public class StartActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.i(TAG, "Connection to Location services failed");
     }
 
     @Override
     public void onLocationChanged(Location location) {
-
+        Log.i(TAG, "Location changed");
     }
 
 
@@ -101,6 +104,25 @@ public class StartActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
+
+        if(!googleServicesAvailable()){
+            /*AlertDialog.Builder builder;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                builder = new AlertDialog.Builder(getApplicationContext(), android.R.style.Theme_Material_Dialog_Alert);
+            } else {
+                builder = new AlertDialog.Builder(getApplicationContext());
+            }
+            builder.setTitle("Services missing")
+                    .setMessage("Google Play Services missing from this device. Install it and try again!")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.exit(22);
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();*/
+            System.exit(22);
+        }
 
         if(getIntent().getBooleanExtra("Exit", false)) finish();
 
@@ -237,5 +259,23 @@ public class StartActivity extends AppCompatActivity
         Log.d(TAG, "onDestroy(StartActivity) called");
     }
 
+    public boolean googleServicesAvailable() {
+        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
+        int isAvailable = api.isGooglePlayServicesAvailable(this);      // Can return 3 different values
+
+        if (isAvailable == ConnectionResult.SUCCESS) {
+            return true;
+        } else if (api.isUserResolvableError(isAvailable)) {
+            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
+            dialog.show();
+        } else if (api.isUserResolvableError(isAvailable)) {
+            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "Can't connect to play services! Exiting...", Toast.LENGTH_LONG).show();
+        }
+
+        return false;
+    }
 
 }
