@@ -54,11 +54,7 @@ public class StartActivity extends AppCompatActivity
 
     GoogleApiClient m_googleApiClient;
 
-    m_googleApiClient = new GoogleApiClient.Builder(this)
-                            .addConnectionCallbacks(this)
-                            .addOnConnectionFailedListener(this)
-                            .addApi(LocationServices.API)
-                            .build();
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -107,6 +103,13 @@ public class StartActivity extends AppCompatActivity
         internalStorage.setContext(this);
 
         if(getIntent().getBooleanExtra("Exit", false)) finish();
+
+        m_googleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
 
         locationDataList = internalStorage.readLocationDataList();
         Log.v(TAG, "onCreate, locationDataList" + locationDataList);
