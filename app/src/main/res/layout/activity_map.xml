@@ -42,4 +42,5 @@
         android:onClick="startPauseTrack"
         android:state_pressed="true"
         android:text="Pause tracking" />
+
 </RelativeLayout>

@@ -29,6 +29,12 @@ import java.util.Comparator;
  * or goes to MapActivity
  */
 
+/* TODO
+    1) Set AlarmManager reinitialization time
+    2) onCreate - initialize GPS services and perform checks
+    3)
+ */
+
 public class StartActivity extends AppCompatActivity {
     final String TAG = "StartActivity";
     LocationData selectedLocationData;
@@ -96,7 +102,7 @@ public class StartActivity extends AppCompatActivity {
             });
 
             myListView2.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override //NOTE delete saved point, if selection is long-pressed
+                @Override //NOTE: delete saved point, if selection is long-pressed
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int i, long l) {
                     AlertDialog.Builder alert = new AlertDialog.Builder(StartActivity.this); //NOTE: build confirmation AlertDialog
                     alert.setMessage("Are you sure you want to delete this?");
@@ -158,23 +164,31 @@ public class StartActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
     protected void onResume(){
         super.onResume();
         Log.d(TAG, "onResume(StartActivity) called");
     }
 
+    @Override
     protected void onPause(){
         super.onPause();
         Log.d(TAG, "onPause(StartActivity) called");
     }
 
+    @Override
     protected void onStop(){
         super.onStop();
         Log.d(TAG, "onStop(StartActivity) called");
     }
 
+    @Override
     protected void onDestroy(){
         super.onDestroy();
+        stopService(new Intent(this, AlarmSoundService.class));
+        stopService(new Intent(this, AlarmNotificationService.class));
         Log.d(TAG, "onDestroy(StartActivity) called");
     }
+
+
 }
