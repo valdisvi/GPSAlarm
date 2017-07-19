@@ -114,8 +114,9 @@ public class MapActivity extends AppCompatActivity
     LocationData selectedLocationData; // location of selected target
 
     private PendingIntent pendingIntent;
-
     private int statusForAlarm;
+
+    //StartActivity checkerHelper = new StartActivity();
 
 
     enum Estimate { // List of travel distance estimation values
@@ -136,34 +137,32 @@ public class MapActivity extends AppCompatActivity
         checkGPS();
         checkAndConnect();
 
-        if (googleServicesAvailable()) {
-            setContentView(R.layout.activity_map);
-            initMap();
+        setContentView(R.layout.activity_map);
+        initMap();
 
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-            setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
-            maximumSpeed = Integer.parseInt(prefs.getString("maximumSpeed", "100"));
-            triggerAlarmManager(0);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        setAlarmRadius(Integer.parseInt(prefs.getString("alarmRadius", "500")));
+        maximumSpeed = Integer.parseInt(prefs.getString("maximumSpeed", "100"));
+        triggerAlarmManager(0);
 
-            SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-                public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+        SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
 
-                    if (key.equals("mapType")) {
-                        changeMapType(prefs.getString("2", "2"));
-                    }
-                    if (key.equals("alarmRadius")) {
-                        setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
-                        clearMarker();
-                    }
-                    if (key.equals("alarmRingtone")) {
-                        triggerAlarmManager(0);
-                    }
-
+                if (key.equals("mapType")) {
+                    changeMapType(prefs.getString("2", "2"));
                 }
-            };
-            prefs.registerOnSharedPreferenceChangeListener(prefListener);
-            locationDataList = internalStorage.readLocationDataList(); // Retrieve the list from internal storage
-        }
+                if (key.equals("alarmRadius")) {
+                    setAlarmRadius(Integer.parseInt(prefs.getString(key, "500")));
+                    clearMarker();
+                }
+                if (key.equals("alarmRingtone")) {
+                    triggerAlarmManager(0);
+                }
+
+            }
+        };
+        prefs.registerOnSharedPreferenceChangeListener(prefListener);
+        locationDataList = internalStorage.readLocationDataList(); // Retrieve the list from internal storage
 
         // Google map searching by address name
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -207,25 +206,6 @@ public class MapActivity extends AppCompatActivity
     private void initMap() {
         MapFragment myMapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.fragment);
         myMapFragment.getMapAsync(this);            // Previously getMap
-    }
-
-    public boolean googleServicesAvailable() {
-        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
-        int isAvailable = api.isGooglePlayServicesAvailable(this);      // Can return 3 different values
-
-        if (isAvailable == ConnectionResult.SUCCESS) {
-            return true;
-        } else if (api.isUserResolvableError(isAvailable)) {
-            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
-            dialog.show();
-        } else if (api.isUserResolvableError(isAvailable)) {
-            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
-            dialog.show();
-        } else {
-            Toast.makeText(this, "Can't connect to play services!", Toast.LENGTH_LONG).show();
-        }
-
-        return false;
     }
 
     @Override

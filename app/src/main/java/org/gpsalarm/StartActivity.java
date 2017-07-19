@@ -1,10 +1,15 @@
 package org.gpsalarm;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,6 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -33,6 +39,7 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 
 /**
  * App starts from here.
@@ -52,12 +59,20 @@ public class StartActivity extends AppCompatActivity
         LocationListener {
 
     final String TAG = "StartActivity";
+    private boolean checkedWiFi = false;
+
     LocationData selectedLocationData;
     ArrayList<LocationData> locationDataList = new ArrayList<>();
     InternalStorage internalStorage;
 
     GoogleApiClient m_googleApiClient;
+
     private LocationRequest mLocationRequest;
+
+    LocationManager locationManager;
+    WifiManager wifiManager;
+
+
 
 
     @Override
@@ -106,12 +121,20 @@ public class StartActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
         Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
+
+        Log.i(TAG, "Connection to Location services failed");
+
     }
 
     @Override
     public void onLocationChanged(Location location) {
+
         handleNewLocation(location);
+
+        Log.i(TAG, "Location changed");
+
     }
 
     private void handleNewLocation(Location location) {
@@ -149,6 +172,27 @@ public class StartActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
+
+        if(!googleServicesAvailable()){
+            /*AlertDialog.Builder builder;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                builder = new AlertDialog.Builder(getApplicationContext(), android.R.style.Theme_Material_Dialog_Alert);
+            } else {
+                builder = new AlertDialog.Builder(getApplicationContext());
+            }
+            builder.setTitle("Services missing")
+                    .setMessage("Google Play Services missing from this device. Install it and try again!")
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            System.exit(22);
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();*/
+            System.exit(22);
+        }
+        checkGPS();
+        checkAndConnect();
 
         if(getIntent().getBooleanExtra("Exit", false)) finish();
 
@@ -299,5 +343,84 @@ public class StartActivity extends AppCompatActivity
         Log.i(TAG, "onDestroy(StartActivity) called");
     }
 
+    public boolean googleServicesAvailable() {
+        GoogleApiAvailability api = GoogleApiAvailability.getInstance();
+        int isAvailable = api.isGooglePlayServicesAvailable(this);      // Can return 3 different values
 
+        if (isAvailable == ConnectionResult.SUCCESS) {
+            return true;
+        } else if (api.isUserResolvableError(isAvailable)) {
+            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
+            dialog.show();
+        } else if (api.isUserResolvableError(isAvailable)) {
+            Dialog dialog = api.getErrorDialog(this, isAvailable, 0);
+            dialog.show();
+        } else {
+            Toast.makeText(this, "Can't connect to play services! Exiting...", Toast.LENGTH_LONG).show();
+        }
+
+        return false;
+    }
+
+    public void checkGPS() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+            buildAlertMessageNoGps();
+    }
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?\n" + "\"If no, programm will be closed.\"")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                        System.exit(0);
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    public void enableWiFi() {
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        wifiManager.setWifiEnabled(true);
+        startActivity(new Intent(WifiManager.ACTION_PICK_WIFI_NETWORK));
+        Toast.makeText(getApplicationContext(), "Wi-fi connecting..", Toast.LENGTH_LONG).show();
+    }
+
+    private void buildAlertMessageNoWifi() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your Wi-Fi seems to be disabled, do you want to enable it?\n" + "\"If wi-fi not available, please connect via mobile data\"")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        enableWiFi();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    public void checkAndConnect() {
+        if (!checkedWiFi) {
+            ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            // test for connection
+            if (cm != null) {
+                if (!(cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isAvailable() && cm.getActiveNetworkInfo().isConnected())) {
+                    buildAlertMessageNoWifi();
+                }
+            }
+            checkedWiFi = true;
+        }
+    }
 }
