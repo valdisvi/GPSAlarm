@@ -41,12 +41,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 
-/**
- * App starts from here.
- * It shows screen of this activity if list of locations is not empty,
- * or goes to MapActivity
- */
-
 /* TODO
     1) Set AlarmManager reinitialization time
     2) onCreate - initialize GPS services and perform checks
@@ -60,6 +54,7 @@ public class StartActivity extends AppCompatActivity
 
     final String TAG = "StartActivity";
     private boolean checkedWiFi = false;
+    private int statusForAlarm;
 
     LocationData selectedLocationData;
     ArrayList<LocationData> locationDataList = new ArrayList<>();
@@ -93,7 +88,7 @@ public class StartActivity extends AppCompatActivity
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
 
-            Log.i(TAG, "No permitions");
+            Log.i(TAG, "No permissions");
 
             //return;
         }
@@ -123,7 +118,6 @@ public class StartActivity extends AppCompatActivity
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
         Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
-
         Log.i(TAG, "Connection to Location services failed");
 
     }
@@ -132,7 +126,6 @@ public class StartActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
 
         handleNewLocation(location);
-
         Log.i(TAG, "Location changed");
 
     }
@@ -144,7 +137,7 @@ public class StartActivity extends AppCompatActivity
 
         LatLng latLng = new LatLng(currentLatitude, currentLongitude);
 
-        Log.i(TAG, "Lcation is: "+location.toString());
+        Log.i(TAG, "Location is: "+location.toString());
     }
 
     // This class is used to provide alphabetic sorting for LocationData list
@@ -174,7 +167,7 @@ public class StartActivity extends AppCompatActivity
         internalStorage.setContext(this);
 
         if(!googleServicesAvailable()){
-            /*AlertDialog.Builder builder;
+            AlertDialog.Builder builder;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 builder = new AlertDialog.Builder(getApplicationContext(), android.R.style.Theme_Material_Dialog_Alert);
             } else {
@@ -188,7 +181,7 @@ public class StartActivity extends AppCompatActivity
                         }
                     })
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();*/
+                    .show();
             System.exit(22);
         }
         checkGPS();
@@ -422,5 +415,14 @@ public class StartActivity extends AppCompatActivity
             }
             checkedWiFi = true;
         }
+    }
+
+    private void triggerAlarmManager(){
+        //pass command to LocationManager
+        
+    }
+
+    public int getStatusForAlarm(){
+        return statusForAlarm;
     }
 }
