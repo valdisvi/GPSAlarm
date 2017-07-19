@@ -104,8 +104,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     LocationData selectedLocationData; // location of selected target
 
     private PendingIntent pendingIntent;
-
     private int statusForAlarm;
+
+    //StartActivity checkerHelper = new StartActivity();
 
 
     enum Estimate { // List of travel distance estimation values
