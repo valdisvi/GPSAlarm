@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -31,7 +32,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,8 +55,8 @@ import java.util.Map;
 
 public class StartActivity extends AppCompatActivity
         implements GoogleApiClient.ConnectionCallbacks,
-                   GoogleApiClient.OnConnectionFailedListener,
-                   LocationListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
 
     final String TAG = "StartActivity";
     private boolean checkedWiFi = false;
@@ -63,14 +66,52 @@ public class StartActivity extends AppCompatActivity
     InternalStorage internalStorage;
 
     GoogleApiClient m_googleApiClient;
+
+    private LocationRequest mLocationRequest;
+
     LocationManager locationManager;
     WifiManager wifiManager;
 
 
 
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
+
+        if (ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+
+            Log.i(TAG, "No permitions");
+
+            //return;
+        }
+        else{
+            Location location = LocationServices.FusedLocationApi.getLastLocation(m_googleApiClient);
+            if (location == null) {
+                LocationServices.FusedLocationApi.requestLocationUpdates(m_googleApiClient, mLocationRequest, this);
+                Log.i(TAG, "Location is null.");
+            }
+            else {
+                handleNewLocation(location);
+                Log.i(TAG, "Location is handled.");
+            }
+
+        }
+
         Log.i(TAG, "Location services connected.");
+
     }
 
     @Override
@@ -80,14 +121,31 @@ public class StartActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+        Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
+
         Log.i(TAG, "Connection to Location services failed");
+
     }
 
     @Override
     public void onLocationChanged(Location location) {
+
+        handleNewLocation(location);
+
         Log.i(TAG, "Location changed");
+
     }
 
+    private void handleNewLocation(Location location) {
+
+        double currentLatitude = location.getLatitude();
+        double currentLongitude = location.getLongitude();
+
+        LatLng latLng = new LatLng(currentLatitude, currentLongitude);
+
+        Log.i(TAG, "Lcation is: "+location.toString());
+    }
 
     // This class is used to provide alphabetic sorting for LocationData list
     class CustomAdapter extends ArrayAdapter<LocationData> {
@@ -99,7 +157,8 @@ public class StartActivity extends AppCompatActivity
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater myInflater = LayoutInflater.from(getContext());
-            View theView = myInflater.inflate(R.layout.row_layout, parent, false); // Last two arguments are significant if we inflate this into a parent.
+            // Last two arguments are significant if we inflate this into a parent.
+            View theView = myInflater.inflate(R.layout.row_layout, parent, false);
             String cline = getItem(position).getName();
             TextView myTextView = (TextView) theView.findViewById(R.id.customTextView);
             myTextView.setText(cline);
@@ -109,7 +168,7 @@ public class StartActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.v(TAG, "onCreate(StartActivity) started");
+        Log.i(TAG, "onCreate(StartActivity) started");
         super.onCreate(savedInstanceState);
         internalStorage = new InternalStorage();
         internalStorage.setContext(this);
@@ -143,9 +202,16 @@ public class StartActivity extends AppCompatActivity
                 .addApi(LocationServices.API)
                 .build();
 
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(20 * 1000)        // 20 seconds, in milliseconds
+                .setFastestInterval(10 * 1000); // 10 second, in milliseconds
+
 
         locationDataList = internalStorage.readLocationDataList();
-        Log.v(TAG, "onCreate, locationDataList" + locationDataList);
+
+        Log.i(TAG, "onCreate, locationDataList" + locationDataList);
 
 
             setContentView(R.layout.activity_start);
@@ -243,23 +309,30 @@ public class StartActivity extends AppCompatActivity
     @Override
     protected void onResume(){
         super.onResume();
-        Log.d(TAG, "onResume(StartActivity) called");
-        m_googleApiClient.connect();
+        Log.i(TAG, "onResume(StartActivity) called");
+        if (!m_googleApiClient.isConnected()) {
+             m_googleApiClient.connect();
+        }
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        Log.d(TAG, "onPause(StartActivity) called");
+        Log.i(TAG, "onPause(StartActivity) called");
         if (m_googleApiClient.isConnected()) {
+
+            LocationServices.FusedLocationApi.removeLocationUpdates(m_googleApiClient, this);
+
             m_googleApiClient.disconnect();
+
+
         }
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-        Log.d(TAG, "onStop(StartActivity) called");
+        Log.i(TAG, "onStop(StartActivity) called");
     }
 
     @Override
@@ -267,7 +340,7 @@ public class StartActivity extends AppCompatActivity
         super.onDestroy();
         stopService(new Intent(this, AlarmSoundService.class));
         stopService(new Intent(this, AlarmNotificationService.class));
-        Log.d(TAG, "onDestroy(StartActivity) called");
+        Log.i(TAG, "onDestroy(StartActivity) called");
     }
 
     public boolean googleServicesAvailable() {

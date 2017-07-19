@@ -74,8 +74,12 @@ import java.util.concurrent.TimeUnit;
 import static android.provider.Settings.System.DEFAULT_ALARM_ALERT_URI;
 
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-        GoogleMap.OnInfoWindowClickListener, LocationListener {
+public class MapActivity extends AppCompatActivity
+                         implements OnMapReadyCallback,
+                                    GoogleApiClient.ConnectionCallbacks,
+                                    GoogleApiClient.OnConnectionFailedListener,
+                                    GoogleMap.OnInfoWindowClickListener,
+                                    LocationListener {
     static final int NOTIFICATION_ID = 899068621;
     static final int TARGET_ID = 0;
     static final int LOCATION_ID = 1;
@@ -87,17 +91,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     boolean isTracking = false;    // is tracking going on
     private boolean userNotified = false; // is user notified about arrival
     private boolean checkedWiFi = false;  // is WiFi connection suggested
+
+
     // Google map elements
     GoogleMap googleMap;
+
     GoogleApiClient googleApiClient;
+
     LatLng addressGeo;
     String addressName;
 
     Marker marker;    // Marker of chosen or to be added location
     Circle circle;
     float alarmRadius;    //  Can be set through preferences.
+
     LocationManager locationManager;
     LocationRequest locationRequest;  // variable for requesting location
+
     WifiManager wifiManager;
     InternalStorage internalStorage; //NOTE: points are saved in a file on sdcard
     ArrayList<LocationData> locationDataList;
