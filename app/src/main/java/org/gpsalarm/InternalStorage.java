@@ -14,7 +14,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 /**
- * This class is used to read/write objects into persistent store
+ * This class is used to read/write objects into persistent storage
  * It extends Application to be sure it is always loaded first and
  */
 final class InternalStorage extends Application {

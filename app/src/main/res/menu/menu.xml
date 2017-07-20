@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="org.gpsalarm.MapActivity" >
    <!-- <item
@@ -12,4 +13,7 @@
     <item
         android:id="@+id/menuItemHelp"
         android:title="@string/menu_item_help" />
+    <item
+        android:id="@+id/menuItemExit"
+        android:title="@string/menu_item_exit" />
 </menu>
